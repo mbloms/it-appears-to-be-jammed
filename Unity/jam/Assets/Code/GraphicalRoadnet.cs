@@ -3,17 +3,11 @@ using UnityEngine;
 
 public class GraphicalRoadnet {
 
-    public float roadWidth = 1;
-    public float roadThickness = 0.5f;
-
-    private List<int[]> intersec;
-    private List<int[]> roads;
+    public static float roadWidth = 1;
+    public static float roadThickness = 0.1f;
 
     public GraphicalRoadnet(List<int[]> intersec, List<int[]> roads)
     {
-        this.intersec = intersec;
-        this.roads = roads;
-
         // draw intersections
         foreach (int[] elem in intersec)
         {
@@ -57,7 +51,7 @@ public class GraphicalRoadnet {
             cube.GetComponent<Renderer>().material.color = Color.white;
             cube.transform.position = new Vector3(xpos, 0, zpos);
             cube.transform.localScale = new Vector3(roadWidth, roadThickness, roadWidth);
-        } 
+        }
     }
 
 }

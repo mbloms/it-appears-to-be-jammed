@@ -10,10 +10,14 @@ public class Main : MonoBehaviour {
         List<int[]> roads = ReadCSV(@"Assets/Data/roads.csv");
 
         // create the physical road network
-        new GraphicalRoadnet(intersections, roads);
+        GraphicalRoadnet graphics = new GraphicalRoadnet(intersections, roads);
 
         // create the logical road network
-        new LogicalRoadnet(intersections, roads);
+        LogicalRoadnet network = new LogicalRoadnet(intersections, roads);
+
+        // create traffic object that runs the cars in the network
+        Traffic traffic = this.gameObject.AddComponent<Traffic>();
+        traffic.Init(network);
     }
 
     // return rows of csv values as a list, where each row is represented as an array of ints

@@ -1,6 +1,7 @@
-/**
+#/**
 !/.gitignore
-!/jam/Assets/**.cs
-!/jam/Assets/**.csv
-!/jam/Assets/**.py
-!/jam/Assets/**.unity
+#!/jam/Assets/Code/**.cs
+#!/jam/Assets/**.csv
+#!/jam/Assets/**.py
+#!/jam/Assets/**.unity
+#!/jam/Assets/Prefabs/**
