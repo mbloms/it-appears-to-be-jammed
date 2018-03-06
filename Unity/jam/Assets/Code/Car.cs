@@ -5,7 +5,7 @@ internal class Car
 {
     private static string[] car_models = { @"car_1" };
     private static float scale_factor = 0.3f;
-    private static float right_lane_offset = 0.25f;
+    //private static float right_lane_offset = 0.25f;
     private static float constant_speed = 0.05f;
 
     /* proof of concept starting point */
@@ -26,8 +26,6 @@ internal class Car
         // pick a starting lane
         int source_id = Deterministic.random.Next(network.connection.Length);
         destination_id = network.connection[source_id][Deterministic.random.Next(network.connection[source_id].Count)];
-        //Debug.Log(network.intersection_coordinates[network.connection[source_id][0]]);
-        //Debug.Log(network.intersection_coordinates[network.connection[source_id][1]]);
         destination = network.intersection_coordinates[destination_id];
 
         // pick a car model
@@ -42,8 +40,7 @@ internal class Car
         ApplyLaneOffset();
         model.transform.position = position;
         model.transform.localScale = scale;
-        // hard coded rotation, prefab already rotated in the right direction
-        model.transform.Rotate(new Vector2(0, 0));
+        UpdateDirection();
 
         Debug.Log("dest0: " + destination);
         Debug.Log(AtNextIntersection());
@@ -102,12 +99,15 @@ internal class Car
             // heading east
             direction.x = 1.0f;
             direction.y = 0.0f;
+            model.transform.rotation = Quaternion.Euler(0, 90, 0);
+
         }
         else if (destination.x - GraphicalRoadnet.roadWidth <= position.x && destination.z == position.z)
         {
             // heading west
             direction.x = -1.0f;
             direction.y = 0.0f;
+            model.transform.rotation = Quaternion.Euler(0, 270, 0);
         }
 
         if (destination.z - GraphicalRoadnet.roadWidth >= position.z && destination.x == position.x)
@@ -115,14 +115,16 @@ internal class Car
             // heading north
             direction.x = 0.0f;
             direction.y = 1.0f;
+            model.transform.rotation = Quaternion.Euler(0, 0, 0);
+
         }
         else if (destination.z - GraphicalRoadnet.roadWidth <= position.z && destination.x == position.x)
         {
             // heading south
             direction.x = 0.0f;
             direction.y = -1.0f;
+            model.transform.rotation = Quaternion.Euler(0, 180, 0);
         }
-        //model.transform.Rotate(new Vector3(0, direction.y * 90), 0);
     }
 
     private void UpdatePosition()
