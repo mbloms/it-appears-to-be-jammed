@@ -3,7 +3,7 @@ using UnityEngine;
 
 internal class Car
 {
-    private static string[] car_models = { @"car_1", @"car_2", @"car_3", @"car_4", @"police", @"taxi" };
+    private static string[] car_models = { @"car_1", @"car_2", @"car_3", @"car_4", @"Police_car", @"Taxi" };
     private static float scale_factor = 0.3f;
     //private static float right_lane_offset = 0.25f;
     private static float constant_speed = 0.05f;
