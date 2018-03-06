@@ -3,7 +3,7 @@ using UnityEngine;
 
 internal class Car
 {
-    private static string[] car_models = { @"car_1" };
+    private static string[] car_models = { @"car_1", @"car_2", @"car_3", @"car_4", @"police", @"taxi" };
     private static float scale_factor = 0.3f;
     //private static float right_lane_offset = 0.25f;
     private static float constant_speed = 0.05f;
@@ -100,7 +100,6 @@ internal class Car
             direction.x = 1.0f;
             direction.y = 0.0f;
             model.transform.rotation = Quaternion.Euler(0, 90, 0);
-
         }
         else if (destination.x - GraphicalRoadnet.roadWidth <= position.x && destination.z == position.z)
         {
@@ -116,7 +115,6 @@ internal class Car
             direction.x = 0.0f;
             direction.y = 1.0f;
             model.transform.rotation = Quaternion.Euler(0, 0, 0);
-
         }
         else if (destination.z - GraphicalRoadnet.roadWidth <= position.z && destination.x == position.x)
         {

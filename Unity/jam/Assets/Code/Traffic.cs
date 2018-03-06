@@ -11,6 +11,8 @@ internal class Traffic : MonoBehaviour
     {
         // add cars
         cars.Add(new Car(network));
+        cars.Add(new Car(network));
+        cars.Add(new Car(network));
         // traffic is ready 
         ready = true;
 
