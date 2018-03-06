@@ -6,17 +6,17 @@ internal class Car
     private static string[] car_models = { @"car_1" };
     private static float scale_factor = 0.3f;
     private static float right_lane_offset = 0.25f;
-    private static float constant_speed = 0.01f;
+    private static float constant_speed = 0.05f;
 
     /* proof of concept starting point */
     private Vector3 position = new Vector3(0.0f, 0.175f, 0.0f);
     private Vector3 scale = new Vector3(scale_factor, scale_factor, scale_factor);
-    private Vector3 direction = new Vector3(0, 0, 1);
+    private Vector2 direction = new Vector2(1, 0);
 
     private int destination_id;
-    private Vector2 destination;
+    private Vector3 destination;
 
-    private GameObject model;
+    public GameObject model;
     private LogicalRoadnet network;
 
     public Car(LogicalRoadnet network)
@@ -26,89 +26,103 @@ internal class Car
         // pick a starting lane
         int source_id = Deterministic.random.Next(network.connection.Length);
         destination_id = network.connection[source_id][Deterministic.random.Next(network.connection[source_id].Count)];
+        //Debug.Log(network.intersection_coordinates[network.connection[source_id][0]]);
+        //Debug.Log(network.intersection_coordinates[network.connection[source_id][1]]);
         destination = network.intersection_coordinates[destination_id];
-        Debug.Log(destination.x);
-        Debug.Log(destination.y);
 
         // pick a car model
         int model_index = Deterministic.random.Next(car_models.Length);
         model = LoadPrefab(car_models[model_index]);
 
+        // move car to starting position
+        position = position + network.intersection_coordinates[source_id];
+        Debug.Log("src: " + position);
+
         // set position
         ApplyLaneOffset();
         model.transform.position = position;
         model.transform.localScale = scale;
-        model.transform.Rotate(direction);
+        // hard coded rotation, prefab already rotated in the right direction
+        model.transform.Rotate(new Vector2(0, 0));
 
-        Drive();
+        Debug.Log("dest0: " + destination);
+        Debug.Log(AtNextIntersection());
     }
 
     public void Drive()
     {
-        if (AtIntersection())
+        if (AtNextIntersection())
         {
             position.x = destination.x;
-            position.z = destination.y;
+            position.z = destination.z;
+            model.transform.position = position;
+
             // take new path
             destination_id = network.connection[destination_id][Deterministic.random.Next(network.connection[destination_id].Count)];
             destination = network.intersection_coordinates[destination_id];
+
+            Debug.Log("next: " + destination);
             UpdateDirection();
         }
-        UpdatePosition();
-        UpdateModel();
+        else
+        {
+            UpdatePosition();
+        }
     }
 
-    private bool AtIntersection()
+    private bool AtNextIntersection()
     {
-        if (direction.x == 0 && direction.z == 1)
+        // east
+        if (position.x >= destination.x && direction.x == 1 && direction.y == 0)
         {
-            // heading north
-            if (destination.y <= position.z) return true; 
+            return true;
         }
-        else if (direction.x == 0 && direction.z == -1)
+        // west
+        if (position.x <= destination.x && direction.x == -1 && direction.y == 0)
         {
-            // heading south
-            if (destination.y >= position.z) return true;
+            return true;
         }
-        else if (direction.x == 1 && direction.z == 0)
+        // north
+        if (position.z >= destination.z && direction.x == 0 && direction.y == 1)
         {
-            // heading east
-            if (destination.x <= position.x) return true;
+            return true;
         }
-        else if (direction.x == -1 && direction.z == 0)
+        // south
+        if (position.z <= destination.z && direction.x == 0 && direction.y == -1)
         {
-            // heading west
-            if (destination.x >= position.x) return true;
+            return true;
         }
         return false;
     }
 
     private void UpdateDirection()
     {
-        if (destination.x >= position.x)
+        if (destination.x - GraphicalRoadnet.roadWidth >= position.x && destination.z == position.z)
         {
             // heading east
             direction.x = 1.0f;
-            direction.z = 0.0f;
+            direction.y = 0.0f;
         }
-        else if (destination.x <= position.x)
+        else if (destination.x - GraphicalRoadnet.roadWidth <= position.x && destination.z == position.z)
         {
             // heading west
             direction.x = -1.0f;
-            direction.z = 0.0f;
+            direction.y = 0.0f;
         }
-        else if (destination.y >= position.z)
+
+        if (destination.z - GraphicalRoadnet.roadWidth >= position.z && destination.x == position.x)
         {
             // heading north
             direction.x = 0.0f;
-            direction.z = 1.0f;
+            direction.y = 1.0f;
         }
-        else if (destination.y <= position.z)
+        else if (destination.z - GraphicalRoadnet.roadWidth <= position.z && destination.x == position.x)
         {
             // heading south
             direction.x = 0.0f;
-            direction.z = -1.0f;
+            direction.y = -1.0f;
         }
+        //model.transform.Rotate(new Vector3(0, direction.y * 90), 0);
     }
 
     private void UpdatePosition()
@@ -117,19 +131,15 @@ internal class Car
         float x_modifier = 0.0f;
         float z_modifier = 0.0f;
         // determine what direction is increased
-        if (direction.x == 0 && direction.z == 1) z_modifier = constant_speed;
-        else if (direction.x == 0 && direction.z == -1) z_modifier = -constant_speed;
-        else if (direction.x == 1 && direction.z == 0) x_modifier = constant_speed;
-        else if (direction.x == -1 && direction.z == 0) x_modifier = -constant_speed;
+        if (direction.x == 0 && direction.y == 1) z_modifier = constant_speed;
+        else if (direction.x == 0 && direction.y == -1) z_modifier = -constant_speed;
+        else if (direction.x == 1 && direction.y == 0) x_modifier = constant_speed;
+        else if (direction.x == -1 && direction.y == 0) x_modifier = -constant_speed;
         // update positional data
         position.x = position.x + x_modifier;
         position.z = position.z + z_modifier;
-    }
-
-    private void UpdateModel()
-    {
+        //  update actual model
         model.transform.position = position;
-        model.transform.Rotate(new Vector3(direction.x * 90, direction.y * 90, direction.z * 90 ));
     }
 
     private void ApplyLaneOffset()
@@ -144,6 +154,5 @@ internal class Car
         GameObject loadedPrefab = GameObject.Instantiate(obj) as GameObject;
         return loadedPrefab;
     }
-
     
 }

@@ -9,8 +9,15 @@ internal class Traffic : MonoBehaviour
 
     public void Init(LogicalRoadnet network)
     {
+        // add cars
         cars.Add(new Car(network));
+        // traffic is ready 
         ready = true;
+
+        // init stalkercam
+        StalkerCam stalker = GameObject.Find("stalker").AddComponent(typeof(StalkerCam)) as StalkerCam;
+        stalker.go = cars[0].model;
+        stalker.ready = true;
     }
 
     public void Update()

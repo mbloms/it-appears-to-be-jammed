@@ -4,18 +4,18 @@ using UnityEngine;
 internal class LogicalRoadnet
 {
     public List<int>[] connection;
-    public List<Vector2> intersection_coordinates;
+    public List<Vector3> intersection_coordinates;
 
     public LogicalRoadnet(List<int[]> intersection_data, List<int[]> road_data)
     {
         // assign all intersections an id
         Dictionary<string, int> intersection = new Dictionary<string, int>();
-        intersection_coordinates = new List<Vector2>();
+        intersection_coordinates = new List<Vector3>();
         for (int i = 0; i < intersection_data.Count; i++)
         {
             int[] coord = intersection_data[i];
             intersection[coord[0] + "," + coord[1]] = i;
-            intersection_coordinates.Add(new Vector2(coord[1], coord[0]));
+            intersection_coordinates.Add(new Vector3(coord[0], 0, coord[1]));
         }
 
         // initialize the connection list
