@@ -13,7 +13,9 @@ internal class Car
     private Vector3 scale = new Vector3(scale_factor, scale_factor, scale_factor);
     private Vector2 direction = new Vector2(1, 0);
 
+    private int source_id;
     private int destination_id;
+
     private Vector3 destination;
 
     public GameObject model;
@@ -24,7 +26,7 @@ internal class Car
         this.network = network;
 
         // pick a starting lane
-        int source_id = Deterministic.random.Next(network.connection.Length);
+        source_id = Deterministic.random.Next(network.connection.Length);
         destination_id = network.connection[source_id][Deterministic.random.Next(network.connection[source_id].Count)];
         destination = network.intersection_coordinates[destination_id];
 
@@ -54,8 +56,14 @@ internal class Car
             position.z = destination.z;
             model.transform.position = position;
 
+            int next = network.connection[destination_id][Deterministic.random.Next(network.connection[destination_id].Count)];
+            while (next == source_id) {
+                next = network.connection[destination_id][Deterministic.random.Next(network.connection[destination_id].Count)];
+            }
+
             // take new path
-            destination_id = network.connection[destination_id][Deterministic.random.Next(network.connection[destination_id].Count)];
+            source_id = destination_id;
+            destination_id = next;
             destination = network.intersection_coordinates[destination_id];
 
             Debug.Log("next: " + destination);
