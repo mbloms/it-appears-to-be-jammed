@@ -83,6 +83,11 @@ internal class IntersectionPoller
         return target.Acquire(q1,q2,q3,q4);
     }
 
+    public void Free()
+    {
+        target.Free(q1,q2,q3,q4);
+    }
+
     public void Update()
     {
         
