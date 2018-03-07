@@ -19,48 +19,48 @@ internal class IntersectionPoller
             case "s":
             switch (to)
             {
-                case "right":
-                break;
-                case "forward":
-                break;
                 case "left":
-                break;
+                q4 = true;
+                case "forward":
+                q3 = true;
+                case "right":
+                q2 = true;
             }
             break;
 
             case "v":
             switch (to)
             {
-                case "right":
-                break;
-                case "forward":
-                break;
                 case "left":
-                break;
+                q1 = true;
+                case "forward":
+                q4 = true;
+                case "right":
+                q3 = true;
             }
             break;
 
             case "n":
             switch (to)
             {
-                case "right":
-                break;
-                case "forward":
-                break;
                 case "left":
-                break;
+                q2 = true;
+                case "forward":
+                q1 = true;
+                case "right":
+                q4 = true;
             }
             break;
 
             case "e":
             switch (to)
             {
-                case "right":
-                break;
-                case "forward":
-                break;
                 case "left":
-                break;
+                q3 = true;
+                case "forward":
+                q2 = true;
+                case "right":
+                q1 = true;
             }
             break;
         }
