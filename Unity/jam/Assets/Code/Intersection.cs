@@ -30,7 +30,16 @@ internal class Intersection
         qse |= q4;
         return true;
     }
-
+    /*
+    Frees locks that are true in arguments.
+     */
+    public void Free(bool q1, bool q2, bool q3, bool q4)
+    {
+        qne = !(qne && q1);
+        qnv = !(qnv && q2);
+        qsv = !(qsv && q3);
+        qse = !(qse && q4);
+    }
 
     public void Update()
     {
