@@ -4,13 +4,17 @@ using UnityEngine;
 
 internal class IntersectionPoller
 {
-    private Intersection target;
+    private FourWayLock target;
 
     //Quadrants to be acquired.
     private bool q1;
     private bool q2;
     private bool q3;
     private bool q4;
+
+    public IntersectionPoller()
+    {
+    }
 
     public IntersectionPoller(string from, string to)
     {

@@ -10,8 +10,7 @@ internal class Car
     private static float speed_scaler = 0.0005f; 
     private static float max_speed = 60.0f * speed_scaler;
     private static float acceleration = 6.0f * speed_scaler;
-    private static float retardation = 20.0f * speed_scaler;
-    private float speed = max_speed;
+    private float speed = 0.0f;
 
     /* proof of concept starting point */
     private Vector3 position = new Vector3(0.0f, GraphicalRoadnet.roadThickness + 0.055f, 0.0f);
@@ -31,16 +30,17 @@ internal class Car
         this.network = network;
 
         // pick a starting lane
-        source_id = Deterministic.random.Next(network.connection.Length);
-        destination_id = network.connection[source_id][Deterministic.random.Next(network.connection[source_id].Count)];
-        destination = network.intersection_coordinates[destination_id];
+        source_id = Deterministic.random.Next(network.intersections.Count);
+        destination_id = network.intersections[source_id].connections[
+            Deterministic.random.Next(network.intersections[source_id].connections.Count)];
+        destination = network.intersections[destination_id].coordinates;
 
         // pick a car model
         int model_index = Deterministic.random.Next(car_models.Length);
         model = LoadPrefab(car_models[model_index]);
 
         // move car to starting position
-        position = position + network.intersection_coordinates[source_id];
+        position = position + network.intersections[source_id].coordinates;
         Debug.Log("src: " + position);
 
         // set position
@@ -54,22 +54,24 @@ internal class Car
 
     public void Drive()
     {
-        //ChangeSpeed();
+        ChangeSpeed();
 
         if (AtNextIntersection())
         {
             position.x = destination.x;
             position.z = destination.z;
 
-            int next = network.connection[destination_id][Deterministic.random.Next(network.connection[destination_id].Count)];
+            int next = network.intersections[source_id].connections[
+                Deterministic.random.Next(network.intersections[source_id].connections.Count)];
             while (next == source_id) {
-                next = network.connection[destination_id][Deterministic.random.Next(network.connection[destination_id].Count)];
+                next = network.intersections[source_id].connections[
+                    Deterministic.random.Next(network.intersections[source_id].connections.Count)];
             }
 
             // take new path
             source_id = destination_id;
             destination_id = next;
-            destination = network.intersection_coordinates[destination_id];
+            destination = network.intersections[destination_id].coordinates;
 
             Debug.Log("next: " + destination);
             UpdateDirection();
@@ -96,27 +98,36 @@ internal class Car
 
     private bool AtNextIntersection()
     {
+        bool arrived = false;
         // east
-        if (position.x >= destination.x && direction.x == 1 && direction.y == 0)
+        if (!arrived &&
+            position.x >= destination.x &&
+            direction.x == 1 && direction.y == 0)
         {
-            return true;
+            arrived = true;
         }
         // west
-        if (position.x <= destination.x && direction.x == -1 && direction.y == 0)
+        if (!arrived &&
+            position.x <= destination.x &&
+            direction.x == -1 && direction.y == 0)
         {
-            return true;
+            arrived = true;
         }
         // north
-        if (position.z >= destination.z && direction.x == 0 && direction.y == 1)
+        if (!arrived &&
+            position.z >= destination.z &&
+            direction.x == 0 && direction.y == 1)
         {
-            return true;
+            arrived = true;
         }
         // south
-        if (position.z <= destination.z && direction.x == 0 && direction.y == -1)
+        if (!arrived &&
+            position.z <= destination.z && direction.x == 0 &&
+            direction.y == -1)
         {
-            return true;
+            arrived = true;
         }
-        return false;
+        return arrived;
     }
 
     private void UpdateDirection()
