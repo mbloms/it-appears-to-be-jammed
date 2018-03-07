@@ -3,8 +3,8 @@ using UnityEngine;
 
 public class GraphicalRoadnet {
 
-    public static float roadWidth = 1;
-    public static float roadThickness = 0.1f;
+    public static float roadWidth = 0.5f;
+    public static float roadThickness = 0.001f;
 
     public GraphicalRoadnet(List<int[]> intersec, List<int[]> roads)
     {
@@ -25,7 +25,7 @@ public class GraphicalRoadnet {
         GameObject cube = GameObject.CreatePrimitive(PrimitiveType.Cube);
         cube.GetComponent<Renderer>().material.color = Color.red;
         cube.transform.position = new Vector3(x, 0, z);
-        cube.transform.localScale = new Vector3(roadWidth, roadThickness, roadWidth);
+        cube.transform.localScale = new Vector3(roadWidth, roadThickness*1.1f, roadWidth);
     }
 
     // create the road objects
@@ -41,11 +41,13 @@ public class GraphicalRoadnet {
         else if (z1 > z2) { zdir = -1; }
 
         // calculate the number of road segments
-        float segments = Mathf.Max(Mathf.Abs(x1 - x2), Mathf.Abs(z1 - z2)) / roadWidth - 1;
+        float segments = Mathf.Max(Mathf.Abs(x1 - x2), Mathf.Abs(z1 - z2));
+        Debug.Log("seg: " + segments);
 
-        for (int i = 0; i < segments; i++) {
-            float xpos = x1 + i * xdir + roadWidth * xdir;
-            float zpos = z1 + i * zdir + roadWidth * zdir;
+        for (int i = 0; i*roadWidth < segments; i++) {
+            Debug.Log(i);
+            float xpos = x1 + i * xdir * roadWidth + roadWidth * xdir;
+            float zpos = z1 + i * zdir * roadWidth + roadWidth * zdir;
             // draw the cube
             GameObject cube = GameObject.CreatePrimitive(PrimitiveType.Cube);
             cube.GetComponent<Renderer>().material.color = Color.white;

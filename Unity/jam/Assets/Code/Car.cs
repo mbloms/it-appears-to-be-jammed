@@ -4,12 +4,17 @@ using UnityEngine;
 internal class Car
 {
     private static string[] car_models = { @"car_1", @"car_2", @"car_3", @"car_4", @"Police_car", @"Taxi" };
-    private static float scale_factor = 0.3f;
-    private static float right_lane_offset = 0.25f;
-    private static float constant_speed = 0.05f;
+    private static float scale_factor = GraphicalRoadnet.roadWidth * 0.3f;
+    private static float right_lane_offset = GraphicalRoadnet.roadWidth * 0.25f;
+
+    private static float speed_scaler = 0.0005f; 
+    private static float max_speed = 60.0f * speed_scaler;
+    private static float acceleration = 6.0f * speed_scaler;
+    private static float retardation = 20.0f * speed_scaler;
+    private float speed = max_speed;
 
     /* proof of concept starting point */
-    private Vector3 position = new Vector3(0.0f, 0.175f, 0.0f);
+    private Vector3 position = new Vector3(0.0f, GraphicalRoadnet.roadThickness + 0.055f, 0.0f);
     private Vector3 scale = new Vector3(scale_factor, scale_factor, scale_factor);
     private Vector2 direction = new Vector2(1, 0);
 
@@ -49,6 +54,8 @@ internal class Car
 
     public void Drive()
     {
+        //ChangeSpeed();
+
         if (AtNextIntersection())
         {
             position.x = destination.x;
@@ -71,6 +78,19 @@ internal class Car
         else
         {
             UpdatePosition();
+        }
+    }
+
+    private void ChangeSpeed()
+    {
+        Accelerate();
+    }
+
+    private void Accelerate()
+    {
+        if (speed < max_speed)
+        {
+            speed = Mathf.Min(speed + acceleration * max_speed, max_speed);
         }
     }
 
@@ -139,10 +159,10 @@ internal class Car
         float x_modifier = 0.0f;
         float z_modifier = 0.0f;
         // determine what direction is increased
-        if (direction.x == 0 && direction.y == 1) z_modifier = constant_speed;
-        else if (direction.x == 0 && direction.y == -1) z_modifier = -constant_speed;
-        else if (direction.x == 1 && direction.y == 0) x_modifier = constant_speed;
-        else if (direction.x == -1 && direction.y == 0) x_modifier = -constant_speed;
+        if (direction.x == 0 && direction.y == 1) z_modifier = speed;
+        else if (direction.x == 0 && direction.y == -1) z_modifier = -speed;
+        else if (direction.x == 1 && direction.y == 0) x_modifier = speed;
+        else if (direction.x == -1 && direction.y == 0) x_modifier = -speed;
         // update positional data
         position.x = position.x + x_modifier;
         position.z = position.z + z_modifier;
