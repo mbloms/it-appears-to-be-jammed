@@ -21,10 +21,13 @@ internal class IntersectionPoller
             {
                 case "left":
                 q4 = true;
+                goto case "forward";
                 case "forward":
                 q3 = true;
+                goto case "right";
                 case "right":
                 q2 = true;
+                break;
             }
             break;
 
@@ -33,10 +36,13 @@ internal class IntersectionPoller
             {
                 case "left":
                 q1 = true;
+                goto case "forward";
                 case "forward":
                 q4 = true;
+                goto case "right";
                 case "right":
                 q3 = true;
+                break;
             }
             break;
 
@@ -45,10 +51,13 @@ internal class IntersectionPoller
             {
                 case "left":
                 q2 = true;
+                goto case "forward";
                 case "forward":
                 q1 = true;
+                goto case "right";
                 case "right":
                 q4 = true;
+                break;
             }
             break;
 
@@ -57,23 +66,25 @@ internal class IntersectionPoller
             {
                 case "left":
                 q3 = true;
+                goto case "forward";
                 case "forward":
                 q2 = true;
+                goto case "right";
                 case "right":
                 q1 = true;
+                break;
             }
             break;
         }
     }
 
+    public bool Acquire()
+    {
+        return target.Acquire(q1,q2,q3,q4);
+    }
+
     public void Update()
     {
-        if (ready)
-        {
-            foreach (Car car in cars)
-            {
-                car.Drive();
-            }
-        }
+        
     }
 }
