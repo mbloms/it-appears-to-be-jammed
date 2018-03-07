@@ -163,7 +163,6 @@ GameObject:
   - component: {fileID: 653507483}
   - component: {fileID: 653507482}
   - component: {fileID: 653507481}
-  - component: {fileID: 653507480}
   m_Layer: 0
   m_Name: stalker
   m_TagString: MainCamera
@@ -171,13 +170,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!81 &653507480
-AudioListener:
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 653507479}
-  m_Enabled: 1
 --- !u!124 &653507481
 Behaviour:
   m_ObjectHideFlags: 0

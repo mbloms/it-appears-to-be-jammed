@@ -5,7 +5,7 @@ internal class Car
 {
     private static string[] car_models = { @"car_1", @"car_2", @"car_3", @"car_4", @"Police_car", @"Taxi" };
     private static float scale_factor = 0.3f;
-    //private static float right_lane_offset = 0.25f;
+    private static float right_lane_offset = 0.25f;
     private static float constant_speed = 0.05f;
 
     /* proof of concept starting point */
@@ -39,7 +39,6 @@ internal class Car
         Debug.Log("src: " + position);
 
         // set position
-        ApplyLaneOffset();
         model.transform.position = position;
         model.transform.localScale = scale;
         UpdateDirection();
@@ -54,7 +53,6 @@ internal class Car
         {
             position.x = destination.x;
             position.z = destination.z;
-            model.transform.position = position;
 
             int next = network.connection[destination_id][Deterministic.random.Next(network.connection[destination_id].Count)];
             while (next == source_id) {
@@ -68,6 +66,7 @@ internal class Car
 
             Debug.Log("next: " + destination);
             UpdateDirection();
+            model.transform.position = position;
         }
         else
         {
@@ -109,7 +108,7 @@ internal class Car
             direction.y = 0.0f;
             model.transform.rotation = Quaternion.Euler(0, 90, 0);
         }
-        else if (destination.x - GraphicalRoadnet.roadWidth <= position.x && destination.z == position.z)
+        else if (destination.x + GraphicalRoadnet.roadWidth <= position.x && destination.z == position.z)
         {
             // heading west
             direction.x = -1.0f;
@@ -124,13 +123,14 @@ internal class Car
             direction.y = 1.0f;
             model.transform.rotation = Quaternion.Euler(0, 0, 0);
         }
-        else if (destination.z - GraphicalRoadnet.roadWidth <= position.z && destination.x == position.x)
+        else if (destination.z + GraphicalRoadnet.roadWidth <= position.z && destination.x == position.x)
         {
             // heading south
             direction.x = 0.0f;
             direction.y = -1.0f;
             model.transform.rotation = Quaternion.Euler(0, 180, 0);
         }
+        ApplyLaneOffset();
     }
 
     private void UpdatePosition()
@@ -152,8 +152,10 @@ internal class Car
 
     private void ApplyLaneOffset()
     {
-        // offset for driving on the *right* side of the road
-        //position.x += right_lane_offset;
+        if (direction.x == 0 && direction.y == 1) position.x += right_lane_offset;
+        else if (direction.x == 0 && direction.y == -1) position.x -= right_lane_offset;
+        else if (direction.x == 1 && direction.y == 0) position.z -= right_lane_offset;
+        else if (direction.x == -1 && direction.y == 0) position.z += right_lane_offset;
     }
 
     private GameObject LoadPrefab(string v)
