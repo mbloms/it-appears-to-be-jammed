@@ -10,6 +10,14 @@ internal class Intersection
     private bool qsv = false;
     private bool qse = false;
 
+    public Vector3 coordinates;
+    public List<int> connections = new List<int>();
+
+    public Intersection(Vector3 vector3)
+    {
+        this.coordinates = vector3;
+    }
+
     /*
     Try to acquire locks for the specified quadrants.
     Arguments: true to acquire lock, false else.
