@@ -12,8 +12,9 @@ internal class IntersectionPoller
     private bool q3;
     private bool q4;
 
-    public IntersectionPoller(string from, string to)
+    public IntersectionPoller(Intersection target, string from, string to)
     {
+        this.target = target;
         switch (from)
         {
             case "s":

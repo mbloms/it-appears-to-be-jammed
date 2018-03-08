@@ -21,7 +21,9 @@ internal class Car
     private int source_id;
     private int destination_id;
 
-    private Vector3 destination;
+    private Intersection destination;
+
+    private IntersectionPoller poller;
 
     public GameObject model;
     private LogicalRoadnet network;
@@ -34,7 +36,7 @@ internal class Car
         source_id = Deterministic.random.Next(network.intersections.Count);
         destination_id = network.intersections[source_id].connections[
             Deterministic.random.Next(network.intersections[source_id].connections.Count)];
-        destination = network.intersections[destination_id].coordinates;
+        destination = network.intersections[destination_id];
 
         // pick a car model
         int model_index = Deterministic.random.Next(car_models.Length);
@@ -52,6 +54,11 @@ internal class Car
         Debug.Log(AtNextIntersection());
     }
 
+    public Intersection getDestination()
+    {
+        return network.intersections[destination_id]
+    }
+    
     public void Drive()
     {
         ChangeSpeed(max_speed);
