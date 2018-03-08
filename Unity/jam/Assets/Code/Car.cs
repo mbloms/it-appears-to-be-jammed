@@ -9,17 +9,20 @@ internal class Car
 
     private static float speed_scaler = 0.0005f;
     private static float max_speed = 60.0f * speed_scaler;
-    private static float acceleration = 6.0f * speed_scaler;
-    private static float retardation = 20.0f * speed_scaler;
+    private static float acceleration = 0.01f;//6.0f * speed_scaler;
+    private static float retardation = 0.25f;//40.0f * speed_scaler;
     private float speed = 0.0f;
 
-    /* proof of concept starting point */
+    private float intersection_speed = max_speed * 0.1f;
+    private float approach_distance = GraphicalRoadnet.roadWidth * 2;
+
     private Vector3 position = new Vector3(0.0f, GraphicalRoadnet.roadThickness + 0.055f, 0.0f);
     private Vector3 scale = new Vector3(scale_factor, scale_factor, scale_factor);
     private Vector2 direction = new Vector2(1, 0);
 
     private Intersection source;
     private Intersection destination;
+    private List<Car> current_queue;
 
     private IntersectionPoller poller;
 
@@ -75,7 +78,19 @@ internal class Car
             options.Add(south);
         }
 
-        return options[Deterministic.random.Next(options.Count)];
+        // remove from old queue
+        if (current_queue != null) { current_queue.RemoveAt(current_queue.Count-1); }
+
+        Intersection next_hop = options[Deterministic.random.Next(options.Count)];
+        if (next_hop == east) { current_queue = origin.EQ; }
+        if (next_hop == west) { current_queue = origin.WQ; }
+        if (next_hop == north) { current_queue = origin.NQ; }
+        if (next_hop == south) { current_queue = origin.SQ; }
+
+        // enter the queue
+        current_queue.Add(this);
+
+        return next_hop;
     }
 
     public Intersection getDestination()
@@ -85,13 +100,17 @@ internal class Car
 
     public void Drive()
     {
-        ChangeSpeed(max_speed);
-
         if (AtNextIntersection())
         {
             position.x = destination.coordinates.x;
             position.z = destination.coordinates.z;
 
+            if (this == this)
+            {
+                position.y = 1;
+            }
+
+            /*
             // the previous destination becomes the new source intersection
             Intersection next_dest = NextDestination(destination, source);
             source = destination;
@@ -101,53 +120,98 @@ internal class Car
             UpdateDirection();
             model.transform.position = position;
             Debug.Log("from: " + source.coordinates + " to " + destination.coordinates);
-
+            */
         }
         else
         {
+            if(ApproachingIntersection())
+            {
+                ChangeSpeed(intersection_speed);
+            }
+            else
+            {
+                ChangeSpeed(max_speed);
+            }
             UpdatePosition();
         }
     }
 
     private void ChangeSpeed(float target_speed)
     {
+        Debug.Log(speed/speed_scaler + ":" + target_speed/ speed_scaler);
         if (speed < target_speed)
         {
             speed = Mathf.Min(speed + acceleration * target_speed, target_speed);
         }
         else if (speed > target_speed)
         {
-            speed = Mathf.Max(speed + retardation * target_speed, target_speed);
+            speed = Mathf.Max(speed - retardation * target_speed, target_speed);
         }
+    }
+
+    private bool ApproachingIntersection()
+    {
+        bool approched = false;
+        // east
+        if (!approched &&
+            position.x >= (destination.coordinates.x - approach_distance) &&
+            direction.x == 1 && direction.y == 0)
+        {
+            approched = true;
+        }
+        // west
+        if (!approched &&
+            position.x <= (destination.coordinates.x + approach_distance) &&
+            direction.x == -1 && direction.y == 0)
+        {
+            approched = true;
+        }
+        // north
+        if (!approched &&
+            position.z >= (destination.coordinates.z - approach_distance) &&
+            direction.x == 0 && direction.y == 1)
+        {
+            approched = true;
+        }
+        // south
+        if (!approched &&
+            position.z <= (destination.coordinates.z + approach_distance) && direction.x == 0 &&
+            direction.y == -1)
+        {
+            approched = true;
+        }
+        return approched;
     }
 
     private bool AtNextIntersection()
     {
+        float offset = GraphicalRoadnet.roadWidth;
+        bool arrived = false;
         // east
-        bool arrived =
-            position.x >= destination.coordinates.x &&
+        if (!arrived &&
+            position.x >= destination.coordinates.x - offset &&
             direction.x == 1 && direction.y == 0)
         {
             arrived = true;
         }
         // west
         if (!arrived &&
-            position.x <= destination.coordinates.x &&
+            position.x <= destination.coordinates.x + offset &&
             direction.x == -1 && direction.y == 0)
         {
             arrived = true;
         }
         // north
         if (!arrived &&
-            position.z >= destination.coordinates.z &&
+            position.z >= destination.coordinates.z - offset &&
             direction.x == 0 && direction.y == 1)
         {
             arrived = true;
         }
         // south
         if (!arrived &&
-            position.z <= destination.coordinates.z && direction.x == 0 &&
-            direction.y == -1)
+            position.z <= destination.coordinates.z + offset && 
+            direction.x == 0 && direction.y == -1)
         {
             arrived = true;
         }
