@@ -1,8 +1,7 @@
-using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 
-internal class Intersection
+public class Intersection
 {
     //Is the quadrant locked?
     private bool qne = false;

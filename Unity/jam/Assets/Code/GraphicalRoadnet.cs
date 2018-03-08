@@ -42,10 +42,8 @@ public class GraphicalRoadnet {
 
         // calculate the number of road segments
         float segments = Mathf.Max(Mathf.Abs(x1 - x2), Mathf.Abs(z1 - z2));
-        Debug.Log("seg: " + segments);
 
         for (int i = 0; i*roadWidth < segments; i++) {
-            Debug.Log(i);
             float xpos = x1 + i * xdir * roadWidth + roadWidth * xdir;
             float zpos = z1 + i * zdir * roadWidth + roadWidth * zdir;
             // draw the cube
