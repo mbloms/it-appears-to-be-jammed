@@ -37,10 +37,7 @@ internal class LogicalRoadnet
                 }
             }
             // all roads are bidirectional (and lead to rome)
-            Debug.Log(inter_1);
-            Debug.Log(inter_2);
-            Intersection s = intersections[inter_1];
-            s.connections.Add(inter_2);
+            intersections[inter_1].connections.Add(inter_2);
             intersections[inter_2].connections.Add(inter_1);
         }
     }

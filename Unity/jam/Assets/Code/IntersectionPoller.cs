@@ -12,10 +12,6 @@ internal class IntersectionPoller
     private bool q3;
     private bool q4;
 
-    public IntersectionPoller()
-    {
-    }
-
     public IntersectionPoller(string from, string to)
     {
         switch (from)

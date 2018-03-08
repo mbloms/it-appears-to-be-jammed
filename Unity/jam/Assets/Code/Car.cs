@@ -48,7 +48,6 @@ internal class Car
         model.transform.localScale = scale;
         UpdateDirection();
 
-        Debug.Log("dest0: " + destination);
         Debug.Log(AtNextIntersection());
     }
 
@@ -61,19 +60,18 @@ internal class Car
             position.x = destination.x;
             position.z = destination.z;
 
-            int next = network.intersections[source_id].connections[
-                Deterministic.random.Next(network.intersections[source_id].connections.Count)];
-            while (next == source_id) {
-                next = network.intersections[source_id].connections[
-                    Deterministic.random.Next(network.intersections[source_id].connections.Count)];
+            List<int> options = network.intersections[destination_id].connections;
+            int next_id = options[Deterministic.random.Next(options.Count)];
+            while (next_id == source_id) {
+                next_id = options[Deterministic.random.Next(options.Count)];
             }
 
             // take new path
             source_id = destination_id;
-            destination_id = next;
+            destination_id = next_id;
             destination = network.intersections[destination_id].coordinates;
 
-            Debug.Log("next: " + destination);
+            Debug.Log("from: " + network.intersections[source_id].coordinates + " to " + destination);
             UpdateDirection();
             model.transform.position = position;
         }
