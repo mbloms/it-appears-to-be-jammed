@@ -9,9 +9,12 @@ internal class Car
 
     private static float speed_scaler = 0.0005f;
     private static float max_speed = 60.0f * speed_scaler;
-    private static float acceleration = 6.0f * speed_scaler;
-    private static float retardation = 20.0f * speed_scaler;
+    private static float acceleration = 0.01f;//6.0f * speed_scaler;
+    private static float retardation = 0.25f;//40.0f * speed_scaler;
     private float speed = 0.0f;
+
+    private float intersection_speed = max_speed * 0.1f;
+    private float approach_distance = GraphicalRoadnet.roadWidth * 2;
 
     /* proof of concept starting point */
     private Vector3 position = new Vector3(0.0f, GraphicalRoadnet.roadThickness + 0.055f, 0.0f);
@@ -85,8 +88,6 @@ internal class Car
 
     public void Drive()
     {
-        ChangeSpeed(max_speed);
-
         if (AtNextIntersection())
         {
             position.x = destination.coordinates.x;
@@ -105,20 +106,64 @@ internal class Car
         }
         else
         {
+            if(ApproachingIntersection())
+            {
+                Debug.Log("aproachinf");
+                ChangeSpeed(intersection_speed);
+            }
+            else
+            {
+                ChangeSpeed(max_speed);
+            }
             UpdatePosition();
         }
     }
 
     private void ChangeSpeed(float target_speed)
     {
+        Debug.Log(speed/speed_scaler + ":" + target_speed/ speed_scaler);
         if (speed < target_speed)
         {
             speed = Mathf.Min(speed + acceleration * target_speed, target_speed);
         }
         else if (speed > target_speed)
         {
-            speed = Mathf.Max(speed + retardation * target_speed, target_speed);
+            speed = Mathf.Max(speed - retardation * target_speed, target_speed);
         }
+    }
+
+    private bool ApproachingIntersection()
+    {
+        bool approched = false;
+        // east
+        if (!approched &&
+            position.x >= (destination.coordinates.x - approach_distance) &&
+            direction.x == 1 && direction.y == 0)
+        {
+            approched = true;
+        }
+        // west
+        if (!approched &&
+            position.x <= (destination.coordinates.x + approach_distance) &&
+            direction.x == -1 && direction.y == 0)
+        {
+            approched = true;
+        }
+        // north
+        if (!approched &&
+            position.z >= (destination.coordinates.z - approach_distance) &&
+            direction.x == 0 && direction.y == 1)
+        {
+            approched = true;
+        }
+        // south
+        if (!approched &&
+            position.z <= (destination.coordinates.z + approach_distance) && direction.x == 0 &&
+            direction.y == -1)
+        {
+            approched = true;
+        }
+        return approched;
     }
 
     private bool AtNextIntersection()
