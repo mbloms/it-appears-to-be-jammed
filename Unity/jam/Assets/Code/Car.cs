@@ -81,17 +81,16 @@ internal class Car
         }
     }
 
-    private void ChangeSpeed()
+	private void ChangeSpeed(int target_speed)
     {
         Accelerate();
-    }
-
-    private void Accelerate()
-    {
-        if (speed < max_speed)
-        {
-            speed = Mathf.Min(speed + acceleration * max_speed, max_speed);
-        }
+		if (speed < target_speed)
+		{
+			speed = Mathf.Min(speed + acceleration * target_speed, target_speed);
+		}
+		else if(speed > target_speed)
+		{
+			speed = Mathf.Max(speed + retardation * target_speed.CompareTo, target_speed);
     }
 
     private bool AtNextIntersection()
