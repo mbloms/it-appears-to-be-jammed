@@ -7,10 +7,10 @@ internal class IntersectionPoller
     private Intersection target;
 
     //Quadrants to be acquired.
-    private bool q1;
-    private bool q2;
-    private bool q3;
-    private bool q4;
+    private readonly bool q1;
+    private readonly bool q2;
+    private readonly bool q3;
+    private readonly bool q4;
 
     public IntersectionPoller(Intersection target, string from, string to)
     {

@@ -123,9 +123,8 @@ internal class Car
 
     private bool AtNextIntersection()
     {
-        bool arrived = false;
         // east
-        if (!arrived &&
+        bool arrived =
             position.x >= destination.coordinates.x &&
             direction.x == 1 && direction.y == 0)
         {
