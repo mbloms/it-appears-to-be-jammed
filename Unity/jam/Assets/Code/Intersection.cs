@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 
-public class Intersection
+internal class Intersection
 {
     //Is the quadrant locked?
     private bool qne = false;
@@ -9,17 +9,18 @@ public class Intersection
     private bool qsv = false;
     private bool qse = false;
 
-    public static LogicalRoadnet Roadnet;
+    public LogicalRoadnet roadnet;
 
     public Vector3 coordinates;
-    private Intersection North;
-    private Intersection West;
-    private Intersection South;
-    private Intersection East;
+    private Intersection north;
+    private Intersection west;
+    private Intersection south;
+    private Intersection east;
 
-    public Intersection(Vector3 vector3)
+    public Intersection(Vector3 vector3, LogicalRoadnet roadnet)
     {
         this.coordinates = vector3;
+        this.roadnet = roadnet;
     }
 
     /*
@@ -53,9 +54,28 @@ public class Intersection
         qse = !(qse && q4);
     }
 
-    public void AddConnection(int connection)
+    public void AddConnection(int connection_id)
     {
-        
+        Intersection connection = roadnet.intersections[connection_id];
+        if (this.coordinates.x > connection.coordinates.x)
+        {
+            this.west = connection;
+        }
+        else
+        if (this.coordinates.x < connection.coordinates.x)
+        {
+            this.east = connection;
+        }
+        else
+        if (this.coordinates.z > connection.coordinates.z)
+        {
+            this.south = connection;
+        }
+        else
+        if (this.coordinates.z < connection.coordinates.z)
+        {
+            this.north = connection;
+        }
     }
 
     public void Update()
