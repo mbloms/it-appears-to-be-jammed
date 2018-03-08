@@ -16,13 +16,13 @@ internal class Car
     private float intersection_speed = max_speed * 0.1f;
     private float approach_distance = GraphicalRoadnet.roadWidth * 2;
 
-    /* proof of concept starting point */
     private Vector3 position = new Vector3(0.0f, GraphicalRoadnet.roadThickness + 0.055f, 0.0f);
     private Vector3 scale = new Vector3(scale_factor, scale_factor, scale_factor);
     private Vector2 direction = new Vector2(1, 0);
 
     private Intersection source;
     private Intersection destination;
+    private List<Car> current_queue;
 
     private IntersectionPoller poller;
 
@@ -78,7 +78,19 @@ internal class Car
             options.Add(south);
         }
 
-        return options[Deterministic.random.Next(options.Count)];
+        // remove from old queue
+        if (current_queue != null) { current_queue.RemoveAt(current_queue.Count-1); }
+
+        Intersection next_hop = options[Deterministic.random.Next(options.Count)];
+        if (next_hop == east) { current_queue = origin.EQ; }
+        if (next_hop == west) { current_queue = origin.WQ; }
+        if (next_hop == north) { current_queue = origin.NQ; }
+        if (next_hop == south) { current_queue = origin.SQ; }
+
+        // enter the queue
+        current_queue.Add(this);
+
+        return next_hop;
     }
 
     public Intersection getDestination()
@@ -93,6 +105,12 @@ internal class Car
             position.x = destination.coordinates.x;
             position.z = destination.coordinates.z;
 
+            if (this == this)
+            {
+                position.y = 1;
+            }
+
+            /*
             // the previous destination becomes the new source intersection
             Intersection next_dest = NextDestination(destination, source);
             source = destination;
@@ -102,13 +120,12 @@ internal class Car
             UpdateDirection();
             model.transform.position = position;
             Debug.Log("from: " + source.coordinates + " to " + destination.coordinates);
-
+            */
         }
         else
         {
             if(ApproachingIntersection())
             {
-                Debug.Log("aproachinf");
                 ChangeSpeed(intersection_speed);
             }
             else
@@ -168,32 +185,33 @@ internal class Car
 
     private bool AtNextIntersection()
     {
+        float offset = GraphicalRoadnet.roadWidth;
         bool arrived = false;
         // east
         if (!arrived &&
-            position.x >= destination.coordinates.x &&
+            position.x >= destination.coordinates.x - offset &&
             direction.x == 1 && direction.y == 0)
         {
             arrived = true;
         }
         // west
         if (!arrived &&
-            position.x <= destination.coordinates.x &&
+            position.x <= destination.coordinates.x + offset &&
             direction.x == -1 && direction.y == 0)
         {
             arrived = true;
         }
         // north
         if (!arrived &&
-            position.z >= destination.coordinates.z &&
+            position.z >= destination.coordinates.z - offset &&
             direction.x == 0 && direction.y == 1)
         {
             arrived = true;
         }
         // south
         if (!arrived &&
-            position.z <= destination.coordinates.z && direction.x == 0 &&
-            direction.y == -1)
+            position.z <= destination.coordinates.z + offset && 
+            direction.x == 0 && direction.y == -1)
         {
             arrived = true;
         }
