@@ -1,4 +1,8 @@
 UnityPackageManager/
+ProjectSettings/
+*.sln
+*.csproj
+Assets/Plugins/
 
 #########
 # Unity #

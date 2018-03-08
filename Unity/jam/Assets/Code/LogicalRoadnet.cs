@@ -7,6 +7,7 @@ internal class LogicalRoadnet
 
     public LogicalRoadnet(List<int[]> intersection_data, List<int[]> road_data)
     {
+        Intersection.roadnet = this;
         // assign all intersections an id
         intersections = new List<Intersection>();
         for (int i = 0; i < intersection_data.Count; i++)
@@ -37,8 +38,8 @@ internal class LogicalRoadnet
                 }
             }
             // all roads are bidirectional (and lead to rome)
-            intersections[inter_1].connections.Add(inter_2);
-            intersections[inter_2].connections.Add(inter_1);
+            intersections[inter_1].AddConnection(inter_2);
+            intersections[inter_2].AddConnection(inter_1);
         }
     }
 }
