@@ -9,8 +9,13 @@ public class Intersection
     private bool qsv = false;
     private bool qse = false;
 
+    public static LogicalRoadnet Roadnet;
+
     public Vector3 coordinates;
-    public List<int> connections = new List<int>();
+    private Intersection North;
+    private Intersection West;
+    private Intersection South;
+    private Intersection East;
 
     public Intersection(Vector3 vector3)
     {
@@ -46,6 +51,11 @@ public class Intersection
         qnv = !(qnv && q2);
         qsv = !(qsv && q3);
         qse = !(qse && q4);
+    }
+
+    public void AddConnection(int connection)
+    {
+        
     }
 
     public void Update()
