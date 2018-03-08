@@ -9,10 +9,10 @@ internal class Intersection
     private bool qsv = false;
     private bool qse = false;
 
-    public List<Car> NQ = new List<Car>();
-    public List<Car> WQ = new List<Car>();
-    public List<Car> SQ = new List<Car>();
-    public List<Car> EQ = new List<Car>();
+    public LinkedList<Car> NQ = new LinkedList<Car>();
+    public LinkedList<Car> WQ = new LinkedList<Car>();
+    public LinkedList<Car> SQ = new LinkedList<Car>();
+    public LinkedList<Car> EQ = new LinkedList<Car>();
 
     public static LogicalRoadnet roadnet;
 

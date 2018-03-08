@@ -22,7 +22,7 @@ internal class Car
 
     private Intersection source;
     private Intersection destination;
-    private List<Car> current_queue;
+    private LinkedList<Car> current_queue;
 
     private IntersectionPoller poller;
 
@@ -79,7 +79,10 @@ internal class Car
         }
 
         // remove from old queue
-        if (current_queue != null) { current_queue.RemoveAt(current_queue.Count-1); }
+        if (current_queue != null)
+        {
+            current_queue.RemoveFirst();
+        }
 
         Intersection next_hop = options[Deterministic.random.Next(options.Count)];
         if (next_hop == east) { current_queue = origin.EQ; }
@@ -88,7 +91,9 @@ internal class Car
         if (next_hop == south) { current_queue = origin.SQ; }
 
         // enter the queue
-        current_queue.Add(this);
+        
+        Debug.Log("AddLast");
+        current_queue.AddLast(this);
 
         return next_hop;
     }
@@ -102,12 +107,13 @@ internal class Car
     {
         if (AtNextIntersection())
         {
-            position.x = destination.coordinates.x;
-            position.z = destination.coordinates.z;
+            //position.x = destination.coordinates.x;
+            //position.z = destination.coordinates.z;
 
-            if (this == this)
+            if (current_queue.First.Value == this)
             {
-                position.y = 1;
+                position.y = 0.2f;
+                model.transform.position = position;
             }
 
             /*
@@ -138,7 +144,7 @@ internal class Car
 
     private void ChangeSpeed(float target_speed)
     {
-        Debug.Log(speed/speed_scaler + ":" + target_speed/ speed_scaler);
+        //Debug.Log(speed/speed_scaler + ":" + target_speed/ speed_scaler);
         if (speed < target_speed)
         {
             speed = Mathf.Min(speed + acceleration * target_speed, target_speed);
