@@ -23,6 +23,7 @@ internal class Car
     private Intersection source;
     private Intersection destination;
     private LinkedList<Car> current_queue;
+    private bool waiting = false;
 
     private IntersectionPoller poller;
 
@@ -105,7 +106,11 @@ internal class Car
 
     public void Drive()
     {
-        if (AtNextIntersection())
+        if (waiting)
+        {
+            
+        }
+        else if (AtNextIntersection())
         {
             //position.x = destination.coordinates.x;
             //position.z = destination.coordinates.z;
@@ -114,19 +119,18 @@ internal class Car
             {
                 position.y = 0.2f;
                 model.transform.position = position;
+                waiting = true;
+                
+                // the previous destination becomes the new source intersection
+                Intersection next_dest = NextDestination(destination, source);
+                source = destination;
+                destination = next_dest;
+                
+                // update the cars appearance
+                UpdateDirection();
+                model.transform.position = position;
+                Debug.Log("from: " + source.coordinates + " to " + destination.coordinates);
             }
-
-            /*
-            // the previous destination becomes the new source intersection
-            Intersection next_dest = NextDestination(destination, source);
-            source = destination;
-            destination = next_dest;
-
-            // update the cars appearance
-            UpdateDirection();
-            model.transform.position = position;
-            Debug.Log("from: " + source.coordinates + " to " + destination.coordinates);
-            */
         }
         else
         {
