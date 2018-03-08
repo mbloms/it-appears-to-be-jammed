@@ -7,7 +7,7 @@ internal class LogicalRoadnet
 
     public LogicalRoadnet(List<int[]> intersection_data, List<int[]> road_data)
     {
-        Intersection.Roadnet = this;
+        Intersection.roadnet = this;
         // assign all intersections an id
         intersections = new List<Intersection>();
         for (int i = 0; i < intersection_data.Count; i++)

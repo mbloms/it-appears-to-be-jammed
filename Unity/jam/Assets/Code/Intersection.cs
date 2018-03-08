@@ -9,12 +9,12 @@ internal class Intersection
     private bool qsv = false;
     private bool qse = false;
 
-    public LinkedList<Car> NQ = LinkedList<T>();
-    public LinkedList<Car> WQ = LinkedList<T>();
-    public LinkedList<Car> SQ = LinkedList<T>();
-    public LinkedList<Car> EQ = LinkedList<T>();
+    public LinkedList<Car> NQ = new LinkedList<Car>();
+    public LinkedList<Car> WQ = new LinkedList<Car>();
+    public LinkedList<Car> SQ = new LinkedList<Car>();
+    public LinkedList<Car> EQ = new LinkedList<Car>();
 
-    public LogicalRoadnet roadnet;
+    public static LogicalRoadnet roadnet;
 
     public Vector3 coordinates;
     
@@ -31,7 +31,7 @@ internal class Intersection
 
     public IntersectionPoller getPoller(string from, string to)
     {
-        return IntersectionPoller(this, from, to);
+        return new IntersectionPoller(this, from, to);
     }
 
     public Intersection getNorth() {return north;}

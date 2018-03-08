@@ -7,7 +7,7 @@ internal class Car
     private static float scale_factor = GraphicalRoadnet.roadWidth * 0.3f;
     private static float right_lane_offset = GraphicalRoadnet.roadWidth * 0.25f;
 
-    private static float speed_scaler = 0.0005f; 
+    private static float speed_scaler = 0.0005f;
     private static float max_speed = 60.0f * speed_scaler;
     private static float acceleration = 6.0f * speed_scaler;
     private static float retardation = 20.0f * speed_scaler;
@@ -18,9 +18,7 @@ internal class Car
     private Vector3 scale = new Vector3(scale_factor, scale_factor, scale_factor);
     private Vector2 direction = new Vector2(1, 0);
 
-    private int source_id;
-    private int destination_id;
-
+    private Intersection source;
     private Intersection destination;
 
     private IntersectionPoller poller;
@@ -32,18 +30,16 @@ internal class Car
     {
         this.network = network;
 
-        // pick a starting lane
-        source_id = Deterministic.random.Next(network.intersections.Count);
-        destination_id = network.intersections[source_id].connections[
-            Deterministic.random.Next(network.intersections[source_id].connections.Count)];
-        destination = network.intersections[destination_id];
+        // pick a starting intersection
+        source = network.intersections[Deterministic.random.Next(network.intersections.Count)];
+        destination = NextDestination(source, null);
 
         // pick a car model
         int model_index = Deterministic.random.Next(car_models.Length);
         model = LoadPrefab(car_models[model_index]);
 
         // move car to starting position
-        position = position + network.intersections[source_id].coordinates;
+        position = position + source.coordinates;
         Debug.Log("src: " + position);
 
         // set position
@@ -54,34 +50,58 @@ internal class Car
         Debug.Log(AtNextIntersection());
     }
 
+    private Intersection NextDestination(Intersection origin, Intersection excluding)
+    {
+        // naïve solution: choose next destination at random
+        List<Intersection> options = new List<Intersection>();
+        Intersection east = origin.getEast();
+        if (east != null && east != excluding)
+        {
+            options.Add(east);
+        }
+        Intersection west = origin.getWest();
+        if (west != null && west != excluding)
+        {
+            options.Add(west);
+        }
+        Intersection north = origin.getNorth();
+        if (north != null && north != excluding)
+        {
+            options.Add(north);
+        }
+        Intersection south = origin.getSouth();
+        if (south != null && south != excluding)
+        {
+            options.Add(south);
+        }
+
+        return options[Deterministic.random.Next(options.Count)];
+    }
+
     public Intersection getDestination()
     {
-        return network.intersections[destination_id];
+        return destination;
     }
-    
+
     public void Drive()
     {
         ChangeSpeed(max_speed);
 
         if (AtNextIntersection())
         {
-            position.x = destination.x;
-            position.z = destination.z;
+            position.x = destination.coordinates.x;
+            position.z = destination.coordinates.z;
 
-            List<int> options = network.intersections[destination_id].connections;
-            int next_id = options[Deterministic.random.Next(options.Count)];
-            while (next_id == source_id) {
-                next_id = options[Deterministic.random.Next(options.Count)];
-            }
+            // the previous destination becomes the new source intersection
+            Intersection next_dest = NextDestination(destination, source);
+            source = destination;
+            destination = next_dest;
 
-            // take new path
-            source_id = destination_id;
-            destination_id = next_id;
-            destination = network.intersections[destination_id].coordinates;
-
-            Debug.Log("from: " + network.intersections[source_id].coordinates + " to " + destination);
+            // update the cars appearance
             UpdateDirection();
             model.transform.position = position;
+            Debug.Log("from: " + source.coordinates + " to " + destination.coordinates);
+
         }
         else
         {
@@ -89,15 +109,15 @@ internal class Car
         }
     }
 
-	private void ChangeSpeed(float target_speed)
+    private void ChangeSpeed(float target_speed)
     {
-		if (speed < target_speed)
-		{
-			speed = Mathf.Min(speed + acceleration * target_speed, target_speed);
-		}
-		else if(speed > target_speed)
-		{
-			speed = Mathf.Max(speed + retardation * target_speed, target_speed);
+        if (speed < target_speed)
+        {
+            speed = Mathf.Min(speed + acceleration * target_speed, target_speed);
+        }
+        else if (speed > target_speed)
+        {
+            speed = Mathf.Max(speed + retardation * target_speed, target_speed);
         }
     }
 
@@ -106,28 +126,28 @@ internal class Car
         bool arrived = false;
         // east
         if (!arrived &&
-            position.x >= destination.x &&
+            position.x >= destination.coordinates.x &&
             direction.x == 1 && direction.y == 0)
         {
             arrived = true;
         }
         // west
         if (!arrived &&
-            position.x <= destination.x &&
+            position.x <= destination.coordinates.x &&
             direction.x == -1 && direction.y == 0)
         {
             arrived = true;
         }
         // north
         if (!arrived &&
-            position.z >= destination.z &&
+            position.z >= destination.coordinates.z &&
             direction.x == 0 && direction.y == 1)
         {
             arrived = true;
         }
         // south
         if (!arrived &&
-            position.z <= destination.z && direction.x == 0 &&
+            position.z <= destination.coordinates.z && direction.x == 0 &&
             direction.y == -1)
         {
             arrived = true;
@@ -137,14 +157,17 @@ internal class Car
 
     private void UpdateDirection()
     {
-        if (destination.x - GraphicalRoadnet.roadWidth >= position.x && destination.z == position.z)
+        if (destination.coordinates.x - GraphicalRoadnet.roadWidth >= position.x &&
+            destination.coordinates.z == position.z)
         {
             // heading east
             direction.x = 1.0f;
             direction.y = 0.0f;
             model.transform.rotation = Quaternion.Euler(0, 90, 0);
         }
-        else if (destination.x + GraphicalRoadnet.roadWidth <= position.x && destination.z == position.z)
+        else
+        if (destination.coordinates.x + GraphicalRoadnet.roadWidth <= position.x &&
+            destination.coordinates.z == position.z)
         {
             // heading west
             direction.x = -1.0f;
@@ -152,14 +175,17 @@ internal class Car
             model.transform.rotation = Quaternion.Euler(0, 270, 0);
         }
 
-        if (destination.z - GraphicalRoadnet.roadWidth >= position.z && destination.x == position.x)
+        if (destination.coordinates.z - GraphicalRoadnet.roadWidth >= position.z &&
+            destination.coordinates.x == position.x)
         {
             // heading north
             direction.x = 0.0f;
             direction.y = 1.0f;
             model.transform.rotation = Quaternion.Euler(0, 0, 0);
         }
-        else if (destination.z + GraphicalRoadnet.roadWidth <= position.z && destination.x == position.x)
+        else
+        if (destination.coordinates.z + GraphicalRoadnet.roadWidth <= position.z &&
+            destination.coordinates.x == position.x)
         {
             // heading south
             direction.x = 0.0f;
@@ -200,5 +226,5 @@ internal class Car
         GameObject loadedPrefab = GameObject.Instantiate(obj) as GameObject;
         return loadedPrefab;
     }
-    
+
 }
