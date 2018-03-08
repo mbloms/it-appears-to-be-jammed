@@ -10,6 +10,7 @@ internal class Car
     private static float speed_scaler = 0.0005f; 
     private static float max_speed = 60.0f * speed_scaler;
     private static float acceleration = 6.0f * speed_scaler;
+    private static float retardation = 20.0f * speed_scaler;
     private float speed = 0.0f;
 
     /* proof of concept starting point */
@@ -53,7 +54,7 @@ internal class Car
 
     public void Drive()
     {
-        ChangeSpeed();
+        ChangeSpeed(max_speed);
 
         if (AtNextIntersection())
         {
@@ -81,16 +82,15 @@ internal class Car
         }
     }
 
-    private void ChangeSpeed()
+	private void ChangeSpeed(float target_speed)
     {
-        Accelerate();
-    }
-
-    private void Accelerate()
-    {
-        if (speed < max_speed)
-        {
-            speed = Mathf.Min(speed + acceleration * max_speed, max_speed);
+		if (speed < target_speed)
+		{
+			speed = Mathf.Min(speed + acceleration * target_speed, target_speed);
+		}
+		else if(speed > target_speed)
+		{
+			speed = Mathf.Max(speed + retardation * target_speed, target_speed);
         }
     }
 
