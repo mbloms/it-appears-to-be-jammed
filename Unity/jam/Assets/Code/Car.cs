@@ -56,7 +56,7 @@ internal class Car
 
     public Intersection getDestination()
     {
-        return network.intersections[destination_id]
+        return network.intersections[destination_id];
     }
     
     public void Drive()

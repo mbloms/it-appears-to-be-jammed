@@ -17,10 +17,12 @@ internal class Intersection
     public LogicalRoadnet roadnet;
 
     public Vector3 coordinates;
+    
     private Intersection north;
     private Intersection west;
     private Intersection south;
     private Intersection east;
+    
 
     public Intersection(Vector3 vector3)
     {
@@ -32,6 +34,11 @@ internal class Intersection
         return IntersectionPoller(this, from, to);
     }
 
+    public Intersection getNorth() {return north;}
+    public Intersection getWest() {return west;}
+    public Intersection getSouth() {return south;}
+    public Intersection getEast() {return east;}
+    
     /*
     Try to acquire locks for the specified quadrants.
     Arguments: true to acquire lock, false else.
