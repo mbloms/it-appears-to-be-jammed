@@ -54,7 +54,7 @@ internal class Car
 
     public void Drive()
     {
-        //ChangeSpeed();
+        ChangeSpeed(60.0f*speed_scaler);
 
         if (AtNextIntersection())
         {
@@ -81,16 +81,16 @@ internal class Car
         }
     }
 
-	private void ChangeSpeed(int target_speed)
+	private void ChangeSpeed(float target_speed)
     {
-        Accelerate();
 		if (speed < target_speed)
 		{
 			speed = Mathf.Min(speed + acceleration * target_speed, target_speed);
 		}
 		else if(speed > target_speed)
 		{
-			speed = Mathf.Max(speed + retardation * target_speed.CompareTo, target_speed);
+			speed = Mathf.Max(speed + retardation * target_speed, target_speed);
+        }
     }
 
     private bool AtNextIntersection()
