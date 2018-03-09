@@ -55,6 +55,11 @@ internal class Car
         Debug.Log(AtNextIntersection());
     }
 
+    private Intersection NextDestination(Intersection origin)
+    {
+        return NextDestination(origin, null);
+    }
+
     private Intersection NextDestination(Intersection origin, Intersection excluding)
     {
         // naïve solution: choose next destination at random
@@ -85,12 +90,30 @@ internal class Car
         {
             current_queue.RemoveFirst();
         }
-
+        
+        // Choose a next hop at random;
         Intersection next_hop = options[Deterministic.random.Next(options.Count)];
-        if (next_hop == east) { current_queue = origin.EQ; }
-        if (next_hop == west) { current_queue = origin.WQ; }
-        if (next_hop == north) { current_queue = origin.NQ; }
-        if (next_hop == south) { current_queue = origin.SQ; }
+        
+        // Go to the queue at next hop corresponding to incomming lane.
+        if (next_hop == east)
+        {
+            current_queue = next_hop.WQ;
+        }
+
+        if (next_hop == west)
+        {
+            current_queue = next_hop.EQ;
+        }
+
+        if (next_hop == north)
+        {
+            current_queue = next_hop.SQ;
+        }
+
+        if (next_hop == south)
+        {
+            current_queue = next_hop.NQ;
+        }
 
         // enter the queue
         
@@ -122,7 +145,9 @@ internal class Car
                 // update the cars appearance
                 UpdateDirection();
                 model.transform.position = position;
-                Debug.Log("from: " + source.coordinates + " to " + destination.coordinates);            }
+                Debug.Log("from: " + source.coordinates + " to " + destination.coordinates);
+                
+            }
         }
         else if (AtNextIntersection())
         {
@@ -137,6 +162,7 @@ internal class Car
                 Intersection next_dest = NextDestination(destination, source);
                 source = destination;
                 destination = next_dest;
+                
             }
         }
         else
