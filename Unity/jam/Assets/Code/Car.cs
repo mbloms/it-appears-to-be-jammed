@@ -24,6 +24,8 @@ internal class Car
     private Intersection source;
     private Intersection destination;
     private LinkedList<Car> current_queue;
+    private LinkedList<Car> previous_queue;
+
     private bool waiting = false;
     private int wait_counter; 
 
@@ -32,14 +34,17 @@ internal class Car
     public GameObject model;
     private LogicalRoadnet network;
 
-    public Car(LogicalRoadnet network)
+    private bool debugging = false;
+
+    public Car(LogicalRoadnet network, bool debugging)
     {
         this.network = network;
+        this.debugging = debugging;
 
         
         // pick a starting intersection
         source = network.intersections[Deterministic.random.Next(network.intersections.Count)];
-        destination = NextDestination(source);
+        destination = InitialDestination(source);
 
         // pick a car model
         int model_index = Deterministic.random.Next(car_models.Length);
@@ -47,14 +52,50 @@ internal class Car
 
         // move car to starting position
         position = position + source.coordinates;
-        Debug.Log("src: " + position);
 
         // set position
         model.transform.position = position;
         model.transform.localScale = scale;
         UpdateDirection();
+    }
 
-        Debug.Log(AtNextIntersection());
+    private Intersection InitialDestination(Intersection source)
+    {
+        // naïve solution: pick first destination at random
+
+        Intersection east = source.getEast();
+        Intersection west = source.getWest();
+        Intersection north = source.getNorth();
+        Intersection south = source.getSouth();
+
+        List<Intersection> options = new List<Intersection>();
+        if (east != null) { options.Add(east); }
+        if (west != null) { options.Add(west); }
+        if (north != null) { options.Add(north); }
+        if (south != null) { options.Add(south); }
+
+        /**
+         * Choose a "previous source" retroactively from the first available interface.
+         * This is just to pouplate the previous_queue object in a sane way
+         */
+        Intersection previous = options[0];
+        if (previous == east) { previous_queue = source.EQ; }
+        if (previous == west) { previous_queue = source.WQ; }
+        if (previous == north) { previous_queue = source.NQ; }
+        if (previous == south) { previous_queue = source.SQ; }
+
+        /**
+         * Pick a first destination from the second available interface (there will always be at least 2)
+         * E.g. if the destination is on the north interface, join the southern queue
+         */
+        Intersection destination = options[1];
+        if (destination == east) { current_queue = destination.WQ; }
+        if (destination == west) { current_queue = destination.EQ; }
+        if (destination == north) { current_queue = destination.SQ; }
+        if (destination == south) { current_queue = destination.NQ; }
+
+        current_queue.AddLast(this);    // join the current queue
+        return destination;
     }
 
     private Intersection NextDestination(Intersection origin)
@@ -64,63 +105,20 @@ internal class Car
 
     private Intersection NextDestination(Intersection origin, Intersection excluding)
     {
-        // naïve solution: choose next destination at random
-        List<Intersection> options = new List<Intersection>();
         Intersection east = origin.getEast();
-        if (east != null && east != excluding)
-        {
-            options.Add(east);
-        }
         Intersection west = origin.getWest();
-        if (west != null && west != excluding)
-        {
-            options.Add(west);
-        }
         Intersection north = origin.getNorth();
-        if (north != null && north != excluding)
-        {
-            options.Add(north);
-        }
         Intersection south = origin.getSouth();
-        if (south != null && south != excluding)
-        {
-            options.Add(south);
-        }
 
-        // remove from old queue
-        if (current_queue != null)
-        {
-            current_queue.RemoveFirst();
-        }
+        List<Intersection> options = new List<Intersection>();
+        if (east != null && east != excluding) { options.Add(east); }
+        if (west != null && west != excluding) { options.Add(west); }
+        if (north != null && north != excluding) { options.Add(north); }
+        if (south != null && south != excluding) { options.Add(south); }
         
-        // Choose a next hop at random;
+        /** Naïve solution: pick the next destination at random */
         Intersection next_hop = options[Deterministic.random.Next(options.Count)];
-        
-        // Go to the queue at next hop corresponding to incomming lane.
-        if (next_hop == east)
-        {
-            current_queue = next_hop.WQ;
-        }
-
-        if (next_hop == west)
-        {
-            current_queue = next_hop.EQ;
-        }
-
-        if (next_hop == north)
-        {
-            current_queue = next_hop.SQ;
-        }
-
-        if (next_hop == south)
-        {
-            current_queue = next_hop.NQ;
-        }
-
-        // enter the queue
-        
-        Debug.Log("AddLast");
-        current_queue.AddLast(this);
+        if (next_hop == origin) { throw new InvalidOperationException("next_hop can't be same as origin"); }
 
         return next_hop;
     }
@@ -132,43 +130,59 @@ internal class Car
 
     public void Drive()
     {
+
+        /** if waiting for OK to drive */
         if (waiting)
         {
-            if (wait_counter > 0)
+            Log("waiting for OK to drive to " + destination.coordinates);
+            // todo: wait for lock to be free instead of timer
+            if (wait_counter <= 0)
+            {
+                // update the cars appearance
+                position.x = source.coordinates.x;
+                position.z = source.coordinates.z;
+                model.transform.position = position;
+                UpdateDirection();
+
+                // 1. leave the previous queue
+                previous_queue = current_queue;
+                previous_queue.Remove(this);
+
+                // 2. enter the new queue
+                if (source == destination.getEast()) { current_queue = destination.EQ; }
+                else if (source == destination.getWest()) { current_queue = destination.WQ; }
+                else if (source == destination.getNorth()) { current_queue = destination.NQ; }
+                else if (source == destination.getSouth()) { current_queue = destination.SQ; }
+                current_queue.AddLast(this);
+
+                // 3. Stop waiting
+                waiting = false;
+                
+            }
+            else if (current_queue.First.Value == this)
             {
                 wait_counter--;
             }
-            else
-            {
-                waiting = false;
-                position.x = source.coordinates.x;
-                position.z = source.coordinates.z;
 
-                // update the cars appearance
-                UpdateDirection();
-                model.transform.position = position;
-                Debug.Log("from: " + source.coordinates + " to " + destination.coordinates);
-                
-            }
         }
-        else if (AtNextIntersection())
+        /** this event is triggered in the frame that the car arrives at the destination */
+        else if (HasArrived())
         {
+            Log("arrived at destination " + destination.coordinates);
 
-            if (current_queue.First.Value == this)
-            {
-                model.transform.position = position;
-                waiting = true;
-                wait_counter = 100;
-                
-                // the previous destination becomes the new source intersection
-                Intersection next_dest = NextDestination(destination, source);
-                source = destination;
-                destination = next_dest;
-                
-            }
+            /** Get a new destination and store the old one as source for the new */
+            Intersection next_hop = NextDestination(destination, source);
+            source = destination;
+            destination = next_hop;
+
+            // enter the next state; waiting for OK at the intersection
+            waiting = true;     
+            wait_counter = 100;
         }
+        /** continue driving towards next destination*/
         else
         {
+            Log("driving old:" + previous_queue.Count + " cur:" + current_queue.Count);
             if(ApproachingIntersection())
             {
                 ChangeSpeed(intersection_speed);
@@ -183,7 +197,6 @@ internal class Car
 
     private void ChangeSpeed(float target_speed)
     {
-        //Debug.Log(speed/speed_scaler + ":" + target_speed/ speed_scaler);
         if (speed < target_speed)
         {
             speed = Mathf.Min(speed + acceleration * target_speed, target_speed);
@@ -228,7 +241,7 @@ internal class Car
         return approched;
     }
 
-    private bool AtNextIntersection()
+    private bool HasArrived()
     {
         float offset = GraphicalRoadnet.roadWidth;
         bool arrived = false;
@@ -333,6 +346,11 @@ internal class Car
         var obj = Resources.Load(v);
         GameObject loadedPrefab = GameObject.Instantiate(obj) as GameObject;
         return loadedPrefab;
+    }
+
+    private void Log(string s)
+    {
+        if (this.debugging) { Debug.Log(s); }
     }
 
 }

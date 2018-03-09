@@ -114,12 +114,12 @@ internal class IntersectionPoller
         }
     }
 
-    public virtual LinkedList<Car> GetQueue()
+    public LinkedList<Car> GetQueue()
     {
         return current_queue;
     }
 
-    public virtual bool Acquire()
+    public bool Acquire()
     {
         if (target.Acquire(q1, q2, q3, q4))
         {
@@ -129,7 +129,7 @@ internal class IntersectionPoller
         return false;
     }
 
-    public virtual void Free()
+    public void Free()
     {
         target.Free(q1,q2,q3,q4);
         current_queue.Remove(car);
