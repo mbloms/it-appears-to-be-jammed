@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 internal class Car
@@ -35,9 +36,10 @@ internal class Car
     {
         this.network = network;
 
+        
         // pick a starting intersection
         source = network.intersections[Deterministic.random.Next(network.intersections.Count)];
-        destination = NextDestination(source, null);
+        destination = NextDestination(source);
 
         // pick a car model
         int model_index = Deterministic.random.Next(car_models.Length);

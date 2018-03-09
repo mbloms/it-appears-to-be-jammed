@@ -4,20 +4,40 @@ using UnityEngine;
 
 internal class IntersectionPoller
 {
-    private Intersection target;
+    private readonly Intersection target;
 
     //Quadrants to be acquired.
     private readonly bool q1;
     private readonly bool q2;
     private readonly bool q3;
     private readonly bool q4;
+    private readonly Car car;
+    private LinkedList<Car> current_queue;
+    private LinkedList<Car> next_queue;
 
-    public IntersectionPoller(Intersection target, string from, string to)
+    public IntersectionPoller(Intersection target, Car car, string from, string to)
     {
         this.target = target;
+        this.car = car;
+        switch (to)
+        {
+            case "south":
+                next_queue = target.getSouth().NQ;
+                break;
+            case "west":
+                next_queue = target.getWest().EQ;
+                break;
+            case "north":
+                next_queue = target.getNorth().SQ;
+                break;
+            case "east":
+                next_queue = target.getEast().WQ;
+                break;                
+        }
         switch (from)
         {
-            case "s":
+            case "south":
+                current_queue = target.SQ;
             switch (to)
             {
                 case "left":
@@ -35,7 +55,8 @@ internal class IntersectionPoller
             }
             break;
 
-            case "v":
+            case "west":
+                current_queue = target.WQ;
             switch (to)
             {
                 case "left":
@@ -53,7 +74,8 @@ internal class IntersectionPoller
             }
             break;
 
-            case "n":
+            case "north":
+                current_queue = target.NQ;
             switch (to)
             {
                 case "left":
@@ -71,7 +93,8 @@ internal class IntersectionPoller
             }
             break;
 
-            case "e":
+            case "east":
+                current_queue = target.EQ;
             switch (to)
             {
                 case "left":
@@ -91,14 +114,25 @@ internal class IntersectionPoller
         }
     }
 
-    public bool Acquire()
+    public virtual LinkedList<Car> GetQueue()
     {
-        return target.Acquire(q1,q2,q3,q4);
+        return current_queue;
     }
 
-    public void Free()
+    public virtual bool Acquire()
+    {
+        if (target.Acquire(q1, q2, q3, q4))
+        {
+            next_queue.AddLast(car);
+            return true;
+        }
+        return false;
+    }
+
+    public virtual void Free()
     {
         target.Free(q1,q2,q3,q4);
+        current_queue.Remove(car);
     }
 
     public void Update()
