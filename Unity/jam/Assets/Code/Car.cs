@@ -23,6 +23,8 @@ internal class Car
     private Intersection source;
     private Intersection destination;
     private LinkedList<Car> current_queue;
+    private LinkedList<Car> previous_queue;
+
     private bool waiting = false;
     private int wait_counter; 
 
@@ -37,7 +39,7 @@ internal class Car
 
         // pick a starting intersection
         source = network.intersections[Deterministic.random.Next(network.intersections.Count)];
-        destination = NextDestination(source, null);
+        destination = InitialDestination(source);
 
         // pick a car model
         int model_index = Deterministic.random.Next(car_models.Length);
@@ -55,27 +57,66 @@ internal class Car
         Debug.Log(AtNextIntersection());
     }
 
+    private Intersection InitialDestination(Intersection source)
+    {
+        // naïve solution: pick first destination at random
+
+        Intersection east = source.getEast();
+        Intersection west = source.getWest();
+        Intersection north = source.getNorth();
+        Intersection south = source.getSouth();
+
+        List<Intersection> options = new List<Intersection>();
+        if (east != null) { options.Add(east); }
+        if (west != null) { options.Add(west); }
+        if (north != null) { options.Add(north); }
+        if (south != null) { options.Add(south); }
+
+        /**
+         * Choose a "previous source" retroactively from the first available interface.
+         * This is just to pouplate the previous_queue object in a sane way
+         */
+        Intersection previous = options[0];
+        if (previous == east) { previous_queue = source.EQ; }
+        if (previous == west) { previous_queue = source.WQ; }
+        if (previous == north) { previous_queue = source.NQ; }
+        if (previous == south) { previous_queue = source.SQ; }
+
+        /**
+         * Pick a first destination from the second available interface (there will always be at least 2)
+         * E.g. if the destination is on the north interface, join the southern queue
+         */
+        Intersection destination = options[1];
+        if (destination == east) { current_queue = destination.WQ; }
+        if (destination == west) { current_queue = destination.EQ; }
+        if (destination == north) { current_queue = destination.SQ; }
+        if (destination == south) { current_queue = destination.NQ; }
+
+        current_queue.AddLast(this);    // join the current queue
+        return destination;
+    }
+
     private Intersection NextDestination(Intersection origin, Intersection excluding)
     {
         // naïve solution: choose next destination at random
         List<Intersection> options = new List<Intersection>();
         Intersection east = origin.getEast();
-        if (east != null && east != excluding)
+        if (east != null)
         {
             options.Add(east);
         }
         Intersection west = origin.getWest();
-        if (west != null && west != excluding)
+        if (west != null)
         {
             options.Add(west);
         }
         Intersection north = origin.getNorth();
-        if (north != null && north != excluding)
+        if (north != null)
         {
             options.Add(north);
         }
         Intersection south = origin.getSouth();
-        if (south != null && south != excluding)
+        if (south != null)
         {
             options.Add(south);
         }
@@ -93,7 +134,6 @@ internal class Car
         if (next_hop == south) { current_queue = origin.SQ; }
 
         // enter the queue
-        
         Debug.Log("AddLast");
         current_queue.AddLast(this);
 
