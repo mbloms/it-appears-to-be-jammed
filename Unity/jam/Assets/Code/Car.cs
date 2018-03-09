@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 internal class Car
@@ -28,7 +29,7 @@ internal class Car
     private bool waiting = false;
     private int wait_counter; 
 
-    private IntersectionPoller poller;
+    //private IntersectionPoller poller;
 
     public GameObject model;
     private LogicalRoadnet network;
@@ -47,14 +48,11 @@ internal class Car
 
         // move car to starting position
         position = position + source.coordinates;
-        Debug.Log("src: " + position);
 
         // set position
         model.transform.position = position;
         model.transform.localScale = scale;
         UpdateDirection();
-
-        Debug.Log(AtNextIntersection());
     }
 
     private Intersection InitialDestination(Intersection source)
@@ -98,45 +96,38 @@ internal class Car
 
     private Intersection NextDestination(Intersection origin, Intersection excluding)
     {
-        // naïve solution: choose next destination at random
-        List<Intersection> options = new List<Intersection>();
+
+        // naïve solution: pick first destination at random
+
         Intersection east = origin.getEast();
-        if (east != null)
-        {
-            options.Add(east);
-        }
         Intersection west = origin.getWest();
-        if (west != null)
-        {
-            options.Add(west);
-        }
         Intersection north = origin.getNorth();
-        if (north != null)
-        {
-            options.Add(north);
-        }
         Intersection south = origin.getSouth();
-        if (south != null)
-        {
-            options.Add(south);
-        }
 
-        // remove from old queue
-        if (current_queue != null)
-        {
-            current_queue.RemoveFirst();
-        }
+        List<Intersection> options = new List<Intersection>();
+        if (east != null && east != excluding) { options.Add(east); }
+        if (west != null && west != excluding) { options.Add(west); }
+        if (north != null && north != excluding) { options.Add(north); }
+        if (south != null && south != excluding) { options.Add(south); }
 
+        /** Store the previous queue */
+        previous_queue = current_queue;
+        previous_queue.Remove(this);
+
+        /**
+         * Pick the next_hop intersection at random
+         * E.g. if the next_hop is on the north interface, join its southern queue
+         */
         Intersection next_hop = options[Deterministic.random.Next(options.Count)];
-        if (next_hop == east) { current_queue = origin.EQ; }
-        if (next_hop == west) { current_queue = origin.WQ; }
-        if (next_hop == north) { current_queue = origin.NQ; }
-        if (next_hop == south) { current_queue = origin.SQ; }
+        if (next_hop == east) { current_queue = next_hop.WQ; }
+        if (next_hop == west) { current_queue = next_hop.EQ; }
+        if (next_hop == north) { current_queue = next_hop.SQ; }
+        if (next_hop == south) { current_queue = next_hop.NQ; }
 
-        // enter the queue
-        Debug.Log("AddLast");
+        /** Enter the new queue */
         current_queue.AddLast(this);
 
+        if (next_hop == origin) { throw new InvalidOperationException("next_hop can't be same as origin"); }
         return next_hop;
     }
 
@@ -149,6 +140,7 @@ internal class Car
     {
         if (waiting)
         {
+            wait_counter = 0; // for debugging
             if (wait_counter > 0)
             {
                 wait_counter--;
@@ -162,7 +154,7 @@ internal class Car
                 // update the cars appearance
                 UpdateDirection();
                 model.transform.position = position;
-                Debug.Log("from: " + source.coordinates + " to " + destination.coordinates);            }
+            }
         }
         else if (AtNextIntersection())
         {
@@ -175,6 +167,7 @@ internal class Car
                 
                 // the previous destination becomes the new source intersection
                 Intersection next_dest = NextDestination(destination, source);
+                Debug.Log("(" + source.coordinates + ") " + destination.coordinates + " to " + next_dest.coordinates);
                 source = destination;
                 destination = next_dest;
             }
@@ -195,7 +188,6 @@ internal class Car
 
     private void ChangeSpeed(float target_speed)
     {
-        //Debug.Log(speed/speed_scaler + ":" + target_speed/ speed_scaler);
         if (speed < target_speed)
         {
             speed = Mathf.Min(speed + acceleration * target_speed, target_speed);
