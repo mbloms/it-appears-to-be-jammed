@@ -23,6 +23,8 @@ internal class Car
     private Intersection source;
     private Intersection destination;
     private LinkedList<Car> current_queue;
+    private bool waiting = false;
+    private int wait_counter; 
 
     private IntersectionPoller poller;
 
@@ -105,28 +107,37 @@ internal class Car
 
     public void Drive()
     {
-        if (AtNextIntersection())
+        if (waiting)
         {
-            //position.x = destination.coordinates.x;
-            //position.z = destination.coordinates.z;
+            if (wait_counter > 0)
+            {
+                wait_counter--;
+            }
+            else
+            {
+                waiting = false;
+                position.x = source.coordinates.x;
+                position.z = source.coordinates.z;
+
+                // update the cars appearance
+                UpdateDirection();
+                model.transform.position = position;
+                Debug.Log("from: " + source.coordinates + " to " + destination.coordinates);            }
+        }
+        else if (AtNextIntersection())
+        {
 
             if (current_queue.First.Value == this)
             {
-                position.y = 0.2f;
                 model.transform.position = position;
+                waiting = true;
+                wait_counter = 100;
+                
+                // the previous destination becomes the new source intersection
+                Intersection next_dest = NextDestination(destination, source);
+                source = destination;
+                destination = next_dest;
             }
-
-            /*
-            // the previous destination becomes the new source intersection
-            Intersection next_dest = NextDestination(destination, source);
-            source = destination;
-            destination = next_dest;
-
-            // update the cars appearance
-            UpdateDirection();
-            model.transform.position = position;
-            Debug.Log("from: " + source.coordinates + " to " + destination.coordinates);
-            */
         }
         else
         {
