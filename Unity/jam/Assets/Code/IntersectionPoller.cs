@@ -21,12 +21,15 @@ internal class IntersectionPoller
             switch (to)
             {
                 case "left":
+                case "east":
                 q4 = true;
                 goto case "forward";
                 case "forward":
+                case "north":
                 q3 = true;
                 goto case "right";
                 case "right":
+                case "west":
                 q2 = true;
                 break;
             }
@@ -36,12 +39,15 @@ internal class IntersectionPoller
             switch (to)
             {
                 case "left":
+                case "south":
                 q1 = true;
                 goto case "forward";
                 case "forward":
+                case "east":
                 q4 = true;
                 goto case "right";
                 case "right":
+                case "north":
                 q3 = true;
                 break;
             }
@@ -51,12 +57,15 @@ internal class IntersectionPoller
             switch (to)
             {
                 case "left":
+                case "west":
                 q2 = true;
                 goto case "forward";
                 case "forward":
+                case "south":
                 q1 = true;
                 goto case "right";
                 case "right":
+                case "east":
                 q4 = true;
                 break;
             }
@@ -66,12 +75,15 @@ internal class IntersectionPoller
             switch (to)
             {
                 case "left":
+                case "north":
                 q3 = true;
                 goto case "forward";
                 case "forward":
+                case "west":
                 q2 = true;
                 goto case "right";
                 case "right":
+                case "south":
                 q1 = true;
                 break;
             }
