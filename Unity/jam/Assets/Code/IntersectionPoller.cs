@@ -121,18 +121,12 @@ internal class IntersectionPoller
 
     public bool Acquire()
     {
-        if (target.Acquire(q1, q2, q3, q4))
-        {
-            next_queue.AddLast(car);
-            return true;
-        }
-        return false;
+        return target.Acquire(q1,q2,q3,q4);
     }
 
     public void Free()
     {
         target.Free(q1,q2,q3,q4);
-        current_queue.Remove(car);
     }
 
     public void Update()
