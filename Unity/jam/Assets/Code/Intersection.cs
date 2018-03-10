@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 internal class Intersection
@@ -29,9 +30,9 @@ internal class Intersection
         this.coordinates = vector3;
     }
 
-    public IntersectionPoller getPoller(string from, string to)
+    public IntersectionPoller getPoller(Car car, string from, string to)
     {
-        return new IntersectionPoller(this, from, to);
+        return new IntersectionPoller(this, car, from, to);
     }
 
     public Intersection getNorth() {return north;}
@@ -92,6 +93,30 @@ internal class Intersection
         {
             this.north = connection;
         }
+    }
+
+    public LinkedList<Car> GetLane(Intersection source)
+    {
+        if (this.coordinates.x > source.coordinates.x)
+        {
+            return EQ;
+        }
+        else
+        if (this.coordinates.x < source.coordinates.x)
+        {
+            return WQ;
+        }
+        else
+        if (this.coordinates.z > source.coordinates.z)
+        {
+            return NQ;
+        }
+        else
+        if (this.coordinates.z < source.coordinates.z)
+        {
+            return SQ;
+        }
+        throw new ArgumentException("Du har fel.");
     }
 
     public void Update()
