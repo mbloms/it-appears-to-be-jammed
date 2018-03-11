@@ -10,8 +10,8 @@ internal class Traffic : MonoBehaviour
     public void Init(LogicalRoadnet network)
     {
         // add cars
-        cars.Add(new Car(network, true));
-        int number_of_cars = 29;
+        cars.Add(new Car(network, false));
+        int number_of_cars = 60;
         for (int i = 0; i < number_of_cars; i++)
         {
             cars.Add(new Car(network, false));

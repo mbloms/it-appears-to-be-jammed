@@ -226,11 +226,13 @@ internal class Car
                         wait_counter--;
                     }
                 }
-                else
+                else if (!DestinationQueueFull())
                 {
                     /** attempt to acquire lock until success */
-                    poller.Acquire();
-                    wait_counter = 100;
+                    if (poller.Acquire())
+                    {
+                        wait_counter = 100;
+                    }
                 }
             }
         }
@@ -301,6 +303,33 @@ internal class Car
             }
         }
         return -1;
+    }
+
+    private bool DestinationQueueFull()
+    {
+        LinkedList<Car> queue = null;
+        if (source == destination.getEast()) { queue = destination.EQ; }
+        else if (source == destination.getWest()) { queue = destination.WQ; }
+        else if (source == destination.getNorth()) { queue = destination.NQ; }
+        else if (source == destination.getSouth()) { queue = destination.SQ; }
+
+        if (queue.Last != null)
+        {
+            float distance = -1; 
+            if (source == destination.getEast() || source == destination.getWest())
+            {
+                // traveling on the x-axis
+                distance = Mathf.Abs(this.position.x - queue.Last.Value.position.x);
+            }
+            else if (source == destination.getNorth() || source == destination.getSouth())
+            {
+                // traveling on the z-axis
+                distance = Mathf.Abs(this.position.z - queue.Last.Value.position.z);
+            }
+            return distance < GraphicalRoadnet.roadWidth;
+        }
+
+        return false;
     }
 
     private bool ApproachingIntersection()
