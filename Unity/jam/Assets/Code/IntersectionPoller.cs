@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using UnityEditor.Rendering;
 using UnityEngine;
 
 internal class IntersectionPoller
@@ -11,6 +12,10 @@ internal class IntersectionPoller
     private readonly bool q2;
     private readonly bool q3;
     private readonly bool q4;
+
+    private bool auto;
+    private int time;
+    
     private readonly Car car;
     private LinkedList<Car> current_queue;
     private LinkedList<Car> next_queue;
@@ -128,9 +133,21 @@ internal class IntersectionPoller
     {
         target.Free(q1,q2,q3,q4);
     }
+    /**
+     * Lock in `time` iterations. 
+     */
+    public void Free(int time)
+    {
+        auto = true;
+        this.time = time;
+    }
 
     public void Update()
     {
-        
+        if (auto)
+        {
+            time--;
+            if (time == 0) { Free(); }
+        }
     }
 }

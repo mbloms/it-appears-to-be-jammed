@@ -167,13 +167,15 @@ internal class Car
 
     public void Drive()
     {
-
+        if (poller != null)
+        {
+            poller.Update();
+        }
         /** if waiting for OK to drive */
         if (waiting)
         {
             Log("waiting for OK to drive to " + destination.coordinates);
-            // todo: wait for lock to be free instead of timer
-            if (wait_counter <= 0)
+            if (poller.Acquire())
             {
                 // update the cars appearance
                 position.x = source.coordinates.x;
@@ -224,9 +226,10 @@ internal class Car
         /** this event is triggered in the frame that the car arrives at the destination */
         else if (HasArrived())
         {
+            if (poller != null) {poller.Free();}
             Log("arrived at destination " + destination.coordinates);
 
-            /** Get a new destination and store the old one as source for the new */
+            // Get a new destination and store the current intersection in `source
             Intersection next_hop = NextDestination(destination, source);
             source = destination;
             destination = next_hop;
@@ -234,6 +237,8 @@ internal class Car
             // enter the next state; waiting for OK at the intersection
             waiting = true;     
             wait_counter = 100;
+
+            poller = source.getPoller(this,from, to);
         }
         /** continue driving towards next destination*/
         else
