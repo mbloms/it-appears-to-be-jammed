@@ -328,8 +328,8 @@ internal class Car
         }
         else if (from == "west" && to == "south")
         {
-            //turn_position.x = position.x + (radius - right_lane_offset) * (Mathf.Cos(angle_rad));
-            //turn_position.z = position.z - (radius + right_lane_offset) * (Mathf.Sin(angle_rad));
+            turn_position.x = position.x + (radius - right_lane_offset) * (Mathf.Cos(angle_rad - Mathf.PI / 2));
+            turn_position.z = position.z - (radius - right_lane_offset) + ((radius - right_lane_offset) * Mathf.Sin(angle_rad + Mathf.PI / 2));
         }
         else if (from == "east" && to == "north")
         {
