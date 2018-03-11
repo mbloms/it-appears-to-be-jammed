@@ -59,7 +59,6 @@ internal class Intersection
         qnv |= q2;
         qsv |= q3;
         qse |= q4;
-        Debug.Log("Locks acquired");
         return true;
     }
     /*
@@ -71,7 +70,6 @@ internal class Intersection
         if (q2) {qnv = false;}
         if (q3) {qsv = false;}
         if (q4) {qse = false;}
-        Debug.Log("Locks freed");
     }
 
     public void AddConnection(int connection_id)

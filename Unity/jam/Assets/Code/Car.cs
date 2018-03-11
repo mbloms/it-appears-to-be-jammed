@@ -115,14 +115,11 @@ internal class Car
         }
 
         current_queue.AddLast(this);    // join the current queue
+        poller = source.getPoller(this, from, to);
+
         return destination;
     }
-
-    private Intersection NextDestination(Intersection origin)
-    {
-        return NextDestination(origin, null);
-    }
-
+    
     private Intersection NextDestination(Intersection origin, Intersection excluding)
     {
         Intersection east = origin.getEast();
@@ -175,58 +172,71 @@ internal class Car
         if (waiting)
         {
             Log("waiting for OK to drive to " + destination.coordinates);
-            if (poller.Acquire())
+
+            /** if you are at the top of the queue */
+            if (current_queue.First.Value == this)
             {
-                // update the cars appearance
-                position.x = source.coordinates.x;
-                position.z = source.coordinates.z;
-                model.transform.position = position;
-                UpdateDirection();
+                /** when the lock is acquired*/
+                if (poller.AlreadyAcquired())
+                {
+                    /** wait for some frames before driving */
+                    if (wait_counter <= 0)
+                    {
+                        // update the cars appearance
+                        position.x = source.coordinates.x;
+                        position.z = source.coordinates.z;
+                        model.transform.position = position;
+                        UpdateDirection();
 
-                // 1. leave the previous queue
-                previous_queue = current_queue;
-                previous_queue.Remove(this);
+                        // 1. leave the previous queue
+                        previous_queue = current_queue;
+                        previous_queue.Remove(this);
 
-                // 2. enter the new queue
-                //    and set `from`.
-                if (source == destination.getEast())
-                {
-                    current_queue = destination.EQ;
-                    // If our new queue is east of the destination,
-                    // then we're also comming from east of the destination.
-                    from = "east";
-                }
-                else if (source == destination.getWest())
-                {
-                    current_queue = destination.WQ;
-                    from = "west";
-                }
-                else if (source == destination.getNorth())
-                {
-                    current_queue = destination.NQ;
-                    from = "north";
-                }
-                else if (source == destination.getSouth())
-                {
-                    current_queue = destination.SQ;
-                    from = "south";
-                }
-                current_queue.AddLast(this);
+                        // 2. enter the new queue and set `from`.
+                        if (source == destination.getEast())
+                        {
+                            current_queue = destination.EQ;
+                            // If our new queue is east of the destination,
+                            // then we're also comming from east of the destination.
+                            from = "east";
+                        }
+                        else if (source == destination.getWest())
+                        {
+                            current_queue = destination.WQ;
+                            from = "west";
+                        }
+                        else if (source == destination.getNorth())
+                        {
+                            current_queue = destination.NQ;
+                            from = "north";
+                        }
+                        else if (source == destination.getSouth())
+                        {
+                            current_queue = destination.SQ;
+                            from = "south";
+                        }
+                        current_queue.AddLast(this);
 
-                // 3. Stop waiting
-                waiting = false;
-                
+                        // 3. Stop waiting
+                        waiting = false;
+                        poller.Free();
+                        poller = source.getPoller(this, from, to);
+
+                    } else {
+                        wait_counter--;
+                    }
+                }
+                else
+                {
+                    /** attempt to acquire lock until success */
+                    poller.Acquire();
+                    wait_counter = 100;
+                }
             }
-            else if (current_queue.First.Value == this)
-            {
-                wait_counter--;
-            }
-
         }
         /** this event is triggered in the frame that the car arrives at the destination */
         else if (HasArrived())
         {
-            if (poller != null) {poller.Free();}
             Log("arrived at destination " + destination.coordinates);
 
             // Get a new destination and store the current intersection in `source
@@ -236,9 +246,6 @@ internal class Car
 
             // enter the next state; waiting for OK at the intersection
             waiting = true;     
-            wait_counter = 100;
-
-            poller = source.getPoller(this,from, to);
         }
         /** continue driving towards next destination*/
         else
