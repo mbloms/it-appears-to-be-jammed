@@ -242,6 +242,7 @@ internal class Car
                     if (poller.Acquire())
                     {
                         wait_threshold = right_turn_delay * TypeOfTurn();
+                        turn_position = position;
                         wait_counter = 0;
                     }
                 }
@@ -295,12 +296,7 @@ internal class Car
         }
         else if (turn == 3)
         {
-            // going to the left
-            float angle_step = 90.0f / wait_threshold;
-            // position.x -= Mathf.Sin(angle_step);
-            //position.z -= Mathf.Cos(angle_step);
-            model.transform.position = position;
-            model.transform.Rotate(new Vector3(0, -angle_step, 0));
+            AnimateLeft();
         }
         else
         {
@@ -336,6 +332,42 @@ internal class Car
             turn_position.x = position.x - (radius - right_lane_offset) * (Mathf.Cos(angle_rad - Mathf.PI / 2));
             turn_position.z = position.z + (radius - right_lane_offset) + ((radius - right_lane_offset) * Mathf.Sin(angle_rad - Mathf.PI / 2));
         }
+
+        // Apply animation
+        turn_position.y = position.y;
+        model.transform.position = turn_position;
+        model.transform.Rotate(new Vector3(0, angle_deg, 0));
+    }
+
+    // Turn the car left in an intersection
+    private void AnimateLeft()
+    {
+        float angle_deg = -90.0f / wait_threshold;
+        float angle_rad = -(Mathf.PI / 2) / wait_threshold * wait_counter;
+
+        float radius = GraphicalRoadnet.roadWidth;
+
+        if (from == "west" && to == "north")
+        {
+            turn_position.x = position.x - right_lane_offset + (radius - right_lane_offset) * (1-Mathf.Cos(angle_rad - Mathf.PI / 2));
+            turn_position.z = position.z + (radius - right_lane_offset) + (radius - right_lane_offset) * Mathf.Sin(angle_rad - Mathf.PI / 2);
+        }
+        /*else if (from == "east" && to == "south")
+        {
+            Debug.Log("gke");
+            turn_position.x = position.x + (radius - right_lane_offset) * (1 - Mathf.Cos(angle_rad));
+            turn_position.z = position.z + (radius - right_lane_offset) * Mathf.Sin(angle_rad);
+        }
+        else if (from == "south" && to == "west")
+        {
+            turn_position.x = position.x + (radius - right_lane_offset) * (Mathf.Cos(angle_rad - Mathf.PI / 2));
+            turn_position.z = position.z - (radius - right_lane_offset) + ((radius - right_lane_offset) * Mathf.Sin(angle_rad + Mathf.PI / 2));
+        }
+        else if (from == "north" && to == "east")
+        {
+            turn_position.x = position.x - (radius - right_lane_offset) * (Mathf.Cos(angle_rad - Mathf.PI / 2));
+            turn_position.z = position.z + (radius - right_lane_offset) + ((radius - right_lane_offset) * Mathf.Sin(angle_rad - Mathf.PI / 2));
+        }*/
 
         // Apply animation
         turn_position.y = position.y;
