@@ -28,7 +28,8 @@ internal class Car
     private string from,to;
 
     private bool waiting = false;
-    private int wait_counter; 
+    private int wait_counter;
+    private int right_turn_delay = 50;
 
     private IntersectionPoller poller;
 
@@ -185,8 +186,14 @@ internal class Car
                         // update the cars appearance
                         position.x = source.coordinates.x;
                         position.z = source.coordinates.z;
-                        model.transform.position = position;
                         UpdateDirection();
+
+                        // apply offset
+                        if (direction.x == 1)  position.x += GraphicalRoadnet.roadWidth;    // heading east
+                        if (direction.x == -1)  position.x -= GraphicalRoadnet.roadWidth;   // heading west
+                        if (direction.y == 1)  position.z += GraphicalRoadnet.roadWidth;    // heading north
+                        if (direction.y == -1)  position.z -= GraphicalRoadnet.roadWidth;   // heading south
+                        model.transform.position = position;
 
                         // 1. leave the previous queue
                         previous_queue = current_queue;
@@ -231,7 +238,7 @@ internal class Car
                     /** attempt to acquire lock until success */
                     if (poller.Acquire())
                     {
-                        wait_counter = 100;
+                        wait_counter = TimeToWait();
                     }
                 }
             }
@@ -267,6 +274,39 @@ internal class Car
                 UpdatePosition();
             }
         }
+    }
+
+    private float AngleToDestination()
+    {
+        // came from south
+        if (source.getSouth() != null && current_queue == source.getSouth().NQ)
+        {
+            if (destination == source.getNorth()) return 0; // dead ahead
+        }
+        // came from north
+        if (source.getNorth() != null && current_queue == source.getNorth().SQ)
+        {
+            if (destination == source.getSouth()) return 0; // dead ahead
+        }
+        // came from west
+        if (source.getWest() != null && current_queue == source.getWest().EQ)
+        {
+            if (destination == source.getEast()) return 0; // dead ahead
+        }
+        // came from east
+        if (source.getEast() != null && current_queue == source.getEast().WQ)
+        {
+            if (destination == source.getWest()) return 0; // dead ahead
+        }
+
+        return -1.0f;
+    }
+
+    private int TimeToWait()
+    {
+        float angle = AngleToDestination();
+        if (angle == 0) return right_turn_delay * 2;
+        else return 0;
     }
 
     private void ChangeSpeed(float target_speed)
