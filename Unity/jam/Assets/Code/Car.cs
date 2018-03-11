@@ -25,6 +25,7 @@ internal class Car
     private Intersection destination;
     private LinkedList<Car> current_queue;
     private LinkedList<Car> previous_queue;
+    private string from,to;
 
     private bool waiting = false;
     private int wait_counter; 
@@ -89,20 +90,36 @@ internal class Car
          * E.g. if the destination is on the north interface, join the southern queue
          */
         Intersection destination = options[1];
-        if (destination == east) { current_queue = destination.WQ; }
-        if (destination == west) { current_queue = destination.EQ; }
-        if (destination == north) { current_queue = destination.SQ; }
-        if (destination == south) { current_queue = destination.NQ; }
+        if (destination == east)
+        {
+            current_queue = destination.WQ;
+            from = "west";
+        }
+
+        if (destination == west)
+        {
+            current_queue = destination.EQ;
+            from = "east";
+        }
+
+        if (destination == north)
+        {
+            current_queue = destination.SQ;
+            from = "south";
+        }
+
+        if (destination == south)
+        {
+            current_queue = destination.NQ;
+            from = "north";
+        }
 
         current_queue.AddLast(this);    // join the current queue
+        poller = source.getPoller(this, from, to);
+
         return destination;
     }
-
-    private Intersection NextDestination(Intersection origin)
-    {
-        return NextDestination(origin, null);
-    }
-
+    
     private Intersection NextDestination(Intersection origin, Intersection excluding)
     {
         Intersection east = origin.getEast();
@@ -120,6 +137,23 @@ internal class Car
         Intersection next_hop = options[Deterministic.random.Next(options.Count)];
         if (next_hop == origin) { throw new InvalidOperationException("next_hop can't be same as origin"); }
 
+        if (next_hop == origin.getEast())
+        {
+            to = "east";
+        }
+        else if (next_hop == origin.getWest())
+        {
+            to = "west";
+        }
+        else if (next_hop == origin.getNorth())
+        {
+            to = "north";
+        }
+        else if (next_hop == origin.getSouth())
+        {
+            to = "south";
+        }
+        
         return next_hop;
     }
 
@@ -130,54 +164,88 @@ internal class Car
 
     public void Drive()
     {
-
+        if (poller != null)
+        {
+            poller.Update();
+        }
         /** if waiting for OK to drive */
         if (waiting)
         {
             Log("waiting for OK to drive to " + destination.coordinates);
-            // todo: wait for lock to be free instead of timer
-            if (wait_counter <= 0)
+
+            /** if you are at the top of the queue */
+            if (current_queue.First.Value == this)
             {
-                // update the cars appearance
-                position.x = source.coordinates.x;
-                position.z = source.coordinates.z;
-                model.transform.position = position;
-                UpdateDirection();
+                /** when the lock is acquired*/
+                if (poller.AlreadyAcquired())
+                {
+                    /** wait for some frames before driving */
+                    if (wait_counter <= 0)
+                    {
+                        // update the cars appearance
+                        position.x = source.coordinates.x;
+                        position.z = source.coordinates.z;
+                        model.transform.position = position;
+                        UpdateDirection();
 
-                // 1. leave the previous queue
-                previous_queue = current_queue;
-                previous_queue.Remove(this);
+                        // 1. leave the previous queue
+                        previous_queue = current_queue;
+                        previous_queue.Remove(this);
 
-                // 2. enter the new queue
-                if (source == destination.getEast()) { current_queue = destination.EQ; }
-                else if (source == destination.getWest()) { current_queue = destination.WQ; }
-                else if (source == destination.getNorth()) { current_queue = destination.NQ; }
-                else if (source == destination.getSouth()) { current_queue = destination.SQ; }
-                current_queue.AddLast(this);
+                        // 2. enter the new queue and set `from`.
+                        if (source == destination.getEast())
+                        {
+                            current_queue = destination.EQ;
+                            // If our new queue is east of the destination,
+                            // then we're also comming from east of the destination.
+                            from = "east";
+                        }
+                        else if (source == destination.getWest())
+                        {
+                            current_queue = destination.WQ;
+                            from = "west";
+                        }
+                        else if (source == destination.getNorth())
+                        {
+                            current_queue = destination.NQ;
+                            from = "north";
+                        }
+                        else if (source == destination.getSouth())
+                        {
+                            current_queue = destination.SQ;
+                            from = "south";
+                        }
+                        current_queue.AddLast(this);
 
-                // 3. Stop waiting
-                waiting = false;
-                
+                        // 3. Stop waiting
+                        waiting = false;
+                        poller.Free();
+                        poller = source.getPoller(this, from, to);
+
+                    } else {
+                        wait_counter--;
+                    }
+                }
+                else
+                {
+                    /** attempt to acquire lock until success */
+                    poller.Acquire();
+                    wait_counter = 100;
+                }
             }
-            else if (current_queue.First.Value == this)
-            {
-                wait_counter--;
-            }
-
         }
         /** this event is triggered in the frame that the car arrives at the destination */
         else if (HasArrived())
         {
             Log("arrived at destination " + destination.coordinates);
 
-            /** Get a new destination and store the old one as source for the new */
+            // Get a new destination and store the current intersection in `source
             Intersection next_hop = NextDestination(destination, source);
             source = destination;
             destination = next_hop;
 
             // enter the next state; waiting for OK at the intersection
             waiting = true;     
-            wait_counter = 100;
         }
         /** continue driving towards next destination*/
         else

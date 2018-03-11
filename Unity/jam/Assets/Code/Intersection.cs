@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Text;
 using UnityEngine;
 
 internal class Intersection
@@ -65,10 +66,10 @@ internal class Intersection
      */
     public void Free(bool q1, bool q2, bool q3, bool q4)
     {
-        qne = !(qne && q1);
-        qnv = !(qnv && q2);
-        qsv = !(qsv && q3);
-        qse = !(qse && q4);
+        if (q1) {qne = false;}
+        if (q2) {qnv = false;}
+        if (q3) {qsv = false;}
+        if (q4) {qse = false;}
     }
 
     public void AddConnection(int connection_id)
