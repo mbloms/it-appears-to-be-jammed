@@ -182,7 +182,7 @@ internal class Car
         /** continue driving towards next destination*/
         else
         {
-            Log("driving old:" + previous_queue.Count + " cur:" + current_queue.Count);
+            // Log("driving old:" + previous_queue.Count + " cur:" + current_queue.Count);
             if(ApproachingIntersection())
             {
                 ChangeSpeed(intersection_speed);
@@ -191,7 +191,11 @@ internal class Car
             {
                 ChangeSpeed(max_speed);
             }
-            UpdatePosition();
+            float distance = DistanceNextCar();
+            if (distance == -1 || distance > GraphicalRoadnet.roadWidth)
+            {
+                UpdatePosition();
+            }
         }
     }
 
@@ -205,6 +209,30 @@ internal class Car
         {
             speed = Mathf.Max(speed - retardation * target_speed, target_speed);
         }
+    }
+
+    private float DistanceNextCar()
+    {
+        LinkedListNode<Car> next = current_queue.Find(this).Previous;
+        if (next != null)
+        {
+            Car next_car = next.Value;
+            if (this.position.x == next_car.position.x)
+            {
+                // traveling north/south
+                return Mathf.Abs(this.position.z - next_car.position.z);
+            }
+            else if (this.position.z == next_car.position.z)
+            {
+                // traveling north/south
+                return Mathf.Abs(this.position.x - next_car.position.x);
+            }
+            else
+            {
+                throw new InvalidOperationException("Cars in same queue but different axes.");
+            }
+        }
+        return -1;
     }
 
     private bool ApproachingIntersection()
