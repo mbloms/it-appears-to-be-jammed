@@ -29,6 +29,8 @@ internal class Car
 
     private bool waiting = false;
     private int wait_counter;
+    private int wait_threshold;
+    private Vector3 turn_position;
     private int right_turn_delay = 50;
 
     private IntersectionPoller poller;
@@ -172,7 +174,7 @@ internal class Car
         /** if waiting for OK to drive */
         if (waiting)
         {
-            Log("waiting for OK to drive to " + destination.coordinates);
+            // Log("waiting for OK to drive to " + destination.coordinates);
 
             /** if you are at the top of the queue */
             if (current_queue.First.Value == this)
@@ -181,7 +183,7 @@ internal class Car
                 if (poller.AlreadyAcquired())
                 {
                     /** wait for some frames before driving */
-                    if (wait_counter <= 0)
+                    if (wait_counter >= wait_threshold)
                     {
                         // update the cars appearance
                         position.x = source.coordinates.x;
@@ -189,10 +191,10 @@ internal class Car
                         UpdateDirection();
 
                         // apply offset
-                        if (direction.x == 1)  position.x += GraphicalRoadnet.roadWidth;    // heading east
-                        if (direction.x == -1)  position.x -= GraphicalRoadnet.roadWidth;   // heading west
-                        if (direction.y == 1)  position.z += GraphicalRoadnet.roadWidth;    // heading north
-                        if (direction.y == -1)  position.z -= GraphicalRoadnet.roadWidth;   // heading south
+                        if (direction.x == 1) position.x += GraphicalRoadnet.roadWidth;    // heading east
+                        if (direction.x == -1) position.x -= GraphicalRoadnet.roadWidth;   // heading west
+                        if (direction.y == 1) position.z += GraphicalRoadnet.roadWidth;    // heading north
+                        if (direction.y == -1) position.z -= GraphicalRoadnet.roadWidth;   // heading south
                         model.transform.position = position;
 
                         // 1. leave the previous queue
@@ -230,7 +232,8 @@ internal class Car
                         poller = source.getPoller(this, from, to);
 
                     } else {
-                        wait_counter--;
+                        /** animate movement */
+                        AnimateTurn();
                     }
                 }
                 else if (!DestinationQueueFull())
@@ -238,7 +241,8 @@ internal class Car
                     /** attempt to acquire lock until success */
                     if (poller.Acquire())
                     {
-                        wait_counter = TimeToWait();
+                        wait_threshold = right_turn_delay * TypeOfTurn();
+                        wait_counter = 0;
                     }
                 }
             }
@@ -246,7 +250,7 @@ internal class Car
         /** this event is triggered in the frame that the car arrives at the destination */
         else if (HasArrived())
         {
-            Log("arrived at destination " + destination.coordinates);
+            // Log("arrived at destination " + destination.coordinates);
 
             // Get a new destination and store the current intersection in `source
             Intersection next_hop = NextDestination(destination, source);
@@ -276,37 +280,117 @@ internal class Car
         }
     }
 
-    private float AngleToDestination()
+    private void AnimateTurn()
     {
-        // came from south
-        if (source.getSouth() != null && current_queue == source.getSouth().NQ)
+        wait_counter++;
+        int turn = TypeOfTurn();
+        
+        if (turn == 1)
         {
-            if (destination == source.getNorth()) return 0; // dead ahead
+            AnimateRight();
         }
-        // came from north
-        if (source.getNorth() != null && current_queue == source.getNorth().SQ)
+        else if (turn == 2)
         {
-            if (destination == source.getSouth()) return 0; // dead ahead
+            AnimateForward();
         }
-        // came from west
-        if (source.getWest() != null && current_queue == source.getWest().EQ)
+        else if (turn == 3)
         {
-            if (destination == source.getEast()) return 0; // dead ahead
+            // going to the left
+            float angle_step = 90.0f / wait_threshold;
+            // position.x -= Mathf.Sin(angle_step);
+            //position.z -= Mathf.Cos(angle_step);
+            model.transform.position = position;
+            model.transform.Rotate(new Vector3(0, -angle_step, 0));
         }
-        // came from east
-        if (source.getEast() != null && current_queue == source.getEast().WQ)
+        else
         {
-            if (destination == source.getWest()) return 0; // dead ahead
+            throw new InvalidOperationException("Undefined type of turn");
         }
-
-        return -1.0f;
     }
 
-    private int TimeToWait()
+    // Turn the car right in an intersection
+    private void AnimateRight()
     {
-        float angle = AngleToDestination();
-        if (angle == 0) return right_turn_delay * 2;
-        else return 0;
+        float angle_deg = 90.0f / wait_threshold;
+        float angle_rad = (Mathf.PI / 2) / wait_threshold * wait_counter;
+
+        float radius = GraphicalRoadnet.roadWidth;
+
+        if (from == "north" && to == "west")
+        {
+            turn_position.x = position.x - (radius - right_lane_offset) * (1 - Mathf.Cos(angle_rad));
+            turn_position.z = position.z - (radius - right_lane_offset) * Mathf.Sin(angle_rad);
+        }
+        else if (from == "south" && to == "east")
+        {
+            turn_position.x = position.x + (radius - right_lane_offset) * (1 - Mathf.Cos(angle_rad));
+            turn_position.z = position.z + (radius - right_lane_offset) * Mathf.Sin(angle_rad);
+        }
+        else if (from == "west" && to == "south")
+        {
+            //turn_position.x = position.x + (radius - right_lane_offset) * (Mathf.Cos(angle_rad));
+            //turn_position.z = position.z - (radius + right_lane_offset) * (Mathf.Sin(angle_rad));
+        }
+        else if (from == "east" && to == "north")
+        {
+            turn_position.x = position.x - (radius - right_lane_offset) * (Mathf.Cos(angle_rad - Mathf.PI / 2));
+            turn_position.z = position.z + (radius - right_lane_offset) + ((radius - right_lane_offset) * Mathf.Sin(angle_rad - Mathf.PI / 2));
+        }
+
+        // Apply animation
+        turn_position.y = position.y;
+        model.transform.position = turn_position;
+        model.transform.Rotate(new Vector3(0, angle_deg, 0));
+    }
+
+    // Move the car forward in an intersection
+    private void AnimateForward()
+    {
+        float step = GraphicalRoadnet.roadWidth * 2 / wait_threshold;
+        if (direction.x == 1) position.x += step;    // heading east
+        if (direction.x == -1) position.x -= step;   // heading west
+        if (direction.y == 1) position.z += step;    // heading north
+        if (direction.y == -1) position.z -= step;   // heading south
+        model.transform.position = position;
+    }
+
+    /** 
+     * Returns one of the following integers
+     * 1: right turn
+     * 2: straight ahead 
+     * 3: left turn
+     */
+    private int TypeOfTurn()
+    {
+        // came from south
+        if (from == "south")
+        {
+            if (to == "north") return 2;    // dead ahead
+            if (to == "east") return 1;     // right
+            if (to == "west") return 3;     // left
+        }
+        // came from north
+        if (from == "north")
+        {
+            if (to == "south") return 2;    // dead ahead
+            if (to == "west") return 1;     // right
+            if (to == "east") return 3;     // left
+        }
+        // came from west
+        if (from == "west")
+        {
+            if (to == "east") return 2;     // dead ahead
+            if (to == "south") return 1;    // right
+            if (to == "north") return 3;    // left
+        }
+        // came from east
+        if (from == "east")
+        {
+            if (to == "west") return 2;     // dead ahead
+            if (to == "north") return 1;    // right
+            if (to == "south") return 3;    // left
+        }
+        return 0;
     }
 
     private void ChangeSpeed(float target_speed)

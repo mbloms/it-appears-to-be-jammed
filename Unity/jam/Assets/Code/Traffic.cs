@@ -10,8 +10,8 @@ internal class Traffic : MonoBehaviour
     public void Init(LogicalRoadnet network)
     {
         // add cars
-        cars.Add(new Car(network, false));
-        int number_of_cars = 60;
+        cars.Add(new Car(network, true));
+        int number_of_cars = 0;
         for (int i = 0; i < number_of_cars; i++)
         {
             cars.Add(new Car(network, false));
@@ -23,6 +23,11 @@ internal class Traffic : MonoBehaviour
         StalkerCam stalker = GameObject.Find("stalker").AddComponent(typeof(StalkerCam)) as StalkerCam;
         stalker.go = cars[0].model;
         stalker.ready = true;
+
+        // init helicam
+        HeliCam heli = GameObject.Find("heli").AddComponent(typeof(HeliCam)) as HeliCam;
+        heli.go = cars[0].model;
+        heli.ready = true;
     }
 
     public void Update()
