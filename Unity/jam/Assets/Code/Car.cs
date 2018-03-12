@@ -352,22 +352,27 @@ internal class Car
             turn_position.x = position.x - right_lane_offset + (radius - right_lane_offset) * (1-Mathf.Cos(angle_rad - Mathf.PI / 2));
             turn_position.z = position.z + (radius - right_lane_offset) + (radius - right_lane_offset) * Mathf.Sin(angle_rad - Mathf.PI / 2);
         }
-        /*else if (from == "east" && to == "south")
+        else if (from == "east" && to == "south")
         {
             Debug.Log("gke");
-            turn_position.x = position.x + (radius - right_lane_offset) * (1 - Mathf.Cos(angle_rad));
-            turn_position.z = position.z + (radius - right_lane_offset) * Mathf.Sin(angle_rad);
+            turn_position.x = position.x - (2 * radius - 3 * right_lane_offset) * (Mathf.Cos(angle_rad + Mathf.PI / 2));
+            turn_position.z = position.z - (2 * radius - 3 * right_lane_offset) + (2 * radius - 3 * right_lane_offset) * Mathf.Sin(angle_rad + Mathf.PI / 2);
         }
-        else if (from == "south" && to == "west")
-        {
-            turn_position.x = position.x + (radius - right_lane_offset) * (Mathf.Cos(angle_rad - Mathf.PI / 2));
-            turn_position.z = position.z - (radius - right_lane_offset) + ((radius - right_lane_offset) * Mathf.Sin(angle_rad + Mathf.PI / 2));
-        }
-        else if (from == "north" && to == "east")
-        {
-            turn_position.x = position.x - (radius - right_lane_offset) * (Mathf.Cos(angle_rad - Mathf.PI / 2));
-            turn_position.z = position.z + (radius - right_lane_offset) + ((radius - right_lane_offset) * Mathf.Sin(angle_rad - Mathf.PI / 2));
-        }*/
+        /*else if (from == "south" && to == "west")
+         {
+             turn_position.x = position.x + (radius - right_lane_offset) * (Mathf.Cos(angle_rad - Mathf.PI / 2));
+             turn_position.z = position.z - (radius - right_lane_offset) + ((radius - right_lane_offset) * Mathf.Sin(angle_rad + Mathf.PI / 2));
+         }
+         else if (from == "north" && to == "east")
+         {
+             turn_position.x = position.x - (radius - right_lane_offset) * (Mathf.Cos(angle_rad - Mathf.PI / 2));
+             turn_position.z = position.z + (radius - right_lane_offset) + ((radius - right_lane_offset) * Mathf.Sin(angle_rad - Mathf.PI / 2));
+         }*/
+
+        GameObject cube = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+        cube.GetComponent<Renderer>().material.color = Color.magenta;
+        cube.transform.position = new Vector3(turn_position.x, 0.02f, turn_position.z);
+        cube.transform.localScale = new Vector3(0.02f, 0.02f, 0.02f);
 
         // Apply animation
         turn_position.y = position.y;
