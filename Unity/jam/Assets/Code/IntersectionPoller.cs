@@ -25,25 +25,9 @@ internal class IntersectionPoller
     {
         this.target = target;
         this.car = car;
-        switch (to)
-        {
-            case "south":
-                next_queue = target.getSouth().NQ;
-                break;
-            case "west":
-                next_queue = target.getWest().EQ;
-                break;
-            case "north":
-                next_queue = target.getNorth().SQ;
-                break;
-            case "east":
-                next_queue = target.getEast().WQ;
-                break;                
-        }
         switch (from)
         {
-            case "south":
-                current_queue = target.SQ;
+            case "north":
             switch (to)
             {
                 case "left":
@@ -51,7 +35,7 @@ internal class IntersectionPoller
                 q4 = true;
                 goto case "forward";
                 case "forward":
-                case "north":
+                case "south":
                 q3 = true;
                 goto case "right";
                 case "right":
@@ -62,11 +46,10 @@ internal class IntersectionPoller
             break;
 
             case "west":
-                current_queue = target.WQ;
             switch (to)
             {
                 case "left":
-                case "south":
+                case "north":
                 q1 = true;
                 goto case "forward";
                 case "forward":
@@ -74,14 +57,13 @@ internal class IntersectionPoller
                 q4 = true;
                 goto case "right";
                 case "right":
-                case "north":
+                case "south":
                 q3 = true;
                 break;
             }
             break;
 
-            case "north":
-                current_queue = target.NQ;
+            case "south":
             switch (to)
             {
                 case "left":
@@ -89,7 +71,7 @@ internal class IntersectionPoller
                 q2 = true;
                 goto case "forward";
                 case "forward":
-                case "south":
+                case "north":
                 q1 = true;
                 goto case "right";
                 case "right":
@@ -100,11 +82,10 @@ internal class IntersectionPoller
             break;
 
             case "east":
-                current_queue = target.EQ;
             switch (to)
             {
                 case "left":
-                case "north":
+                case "south":
                 q3 = true;
                 goto case "forward";
                 case "forward":
@@ -112,7 +93,7 @@ internal class IntersectionPoller
                 q2 = true;
                 goto case "right";
                 case "right":
-                case "south":
+                case "north":
                 q1 = true;
                 break;
             }
@@ -142,8 +123,11 @@ internal class IntersectionPoller
 
     public void Free()
     {
-        locked = false;
-        target.Free(q1,q2,q3,q4);
+        if (locked)
+        {
+            locked = false;
+            target.Free(q1,q2,q3,q4);
+        }
     }
     /**
      * Lock in `time` iterations. 
