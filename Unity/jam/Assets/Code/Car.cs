@@ -10,11 +10,11 @@ internal class Car
 
     private static float speed_scaler = 0.0005f;
     private static float max_speed = 60.0f * speed_scaler;
-    private static float acceleration = 0.01f;//6.0f * speed_scaler;
+    private static float acceleration = 0.005f;//6.0f * speed_scaler;
     private static float retardation = 0.25f;//40.0f * speed_scaler;
     private float speed = 0.0f;
 
-    private float intersection_speed = max_speed * 0.1f;
+    private float intersection_speed = max_speed * 0.5f;
     private float approach_distance = GraphicalRoadnet.roadWidth * 2;
 
     private Vector3 position = new Vector3(0.0f, GraphicalRoadnet.roadThickness + 0.055f, 0.0f);
@@ -276,19 +276,31 @@ internal class Car
         /** continue driving towards next destination*/
         else
         {
-            // Log("driving old:" + previous_queue.Count + " cur:" + current_queue.Count);
-            if(ApproachingIntersection())
+            if (speed < 0)
             {
-                ChangeSpeed(intersection_speed);
+                speed++;
             }
+            // Log("driving old:" + previous_queue.Count + " cur:" + current_queue.Count);
             else
             {
-                ChangeSpeed(max_speed);
-            }
-            float distance = DistanceNextCar();
-            if (distance == -1 || distance > GraphicalRoadnet.roadWidth)
-            {
-                UpdatePosition();
+                if (ApproachingIntersection())
+                {
+                    ChangeSpeed(intersection_speed);
+                }
+                else
+                {
+                    ChangeSpeed(max_speed);
+                }
+
+                float distance = DistanceNextCar();
+                if (distance == -1 || distance > GraphicalRoadnet.roadWidth)
+                {
+                    UpdatePosition();
+                }
+                else
+                {
+                    speed = -30f;
+                }
             }
         }
     }
@@ -463,7 +475,7 @@ internal class Car
                 // traveling on the z-axis
                 distance = Mathf.Abs(this.position.z - queue.Last.Value.position.z);
             }
-            return distance < GraphicalRoadnet.roadWidth;
+            return distance < (GraphicalRoadnet.roadWidth + right_lane_offset);
         }
 
         return false;
