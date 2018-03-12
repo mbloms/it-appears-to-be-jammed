@@ -286,7 +286,7 @@ internal class Car
                 }
                 else
                 {
-                    speed++;
+                    speed += speed_scaler;
                 }
             }
             // Log("driving old:" + previous_queue.Count + " cur:" + current_queue.Count);
@@ -306,7 +306,7 @@ internal class Car
                 }
                 else
                 {
-                    speed = -30f;
+                    speed = -(speed/2 + 20*speed_scaler);
                 }
             }
         }
