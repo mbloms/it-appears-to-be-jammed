@@ -157,6 +157,25 @@ internal class Car
             to = "south";
         }
         
+        if (source == origin.getEast())
+        {
+            from = "east";
+        }
+        else if (source == origin.getWest())
+        {
+            from = "west";
+        }
+        else if (source == origin.getNorth())
+        {
+            from = "north";
+        }
+        else if (source == origin.getSouth())
+        {
+            from = "south";
+        }
+
+        poller = origin.getPoller(this, from, to);
+        
         return next_hop;
     }
 
@@ -182,7 +201,7 @@ internal class Car
                 /** when the lock is acquired*/
                 if (poller.AlreadyAcquired())
                 {
-                    /** wait for some frames before driving */
+                    // When the animation is done.
                     if (wait_counter >= wait_threshold)
                     {
                         // update the cars appearance
@@ -205,31 +224,25 @@ internal class Car
                         if (source == destination.getEast())
                         {
                             current_queue = destination.EQ;
-                            // If our new queue is east of the destination,
-                            // then we're also comming from east of the destination.
-                            from = "east";
+
                         }
                         else if (source == destination.getWest())
                         {
                             current_queue = destination.WQ;
-                            from = "west";
                         }
                         else if (source == destination.getNorth())
                         {
                             current_queue = destination.NQ;
-                            from = "north";
                         }
                         else if (source == destination.getSouth())
                         {
                             current_queue = destination.SQ;
-                            from = "south";
                         }
                         current_queue.AddLast(this);
 
                         // 3. Stop waiting
                         waiting = false;
                         poller.Free();
-                        poller = source.getPoller(this, from, to);
 
                     } else {
                         /** animate movement */
