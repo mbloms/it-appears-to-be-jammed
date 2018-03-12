@@ -277,9 +277,17 @@ internal class Car
         /** continue driving towards next destination*/
         else
         {
+            float distance = DistanceNextCar();
             if (speed < 0)
             {
-                speed++;
+                if (distance == -1)
+                {
+                    speed = 0;
+                }
+                else
+                {
+                    speed++;
+                }
             }
             // Log("driving old:" + previous_queue.Count + " cur:" + current_queue.Count);
             else
@@ -292,8 +300,6 @@ internal class Car
                 {
                     ChangeSpeed(max_speed);
                 }
-
-                float distance = DistanceNextCar();
                 if (distance == -1 || distance > GraphicalRoadnet.roadWidth)
                 {
                     UpdatePosition();
