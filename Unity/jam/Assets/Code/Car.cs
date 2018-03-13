@@ -526,14 +526,14 @@ internal class Car
             if (source == destination.getEast() || source == destination.getWest())
             {
                 // traveling on the x-axis
-                distance = Mathf.Abs(this.position.x - queue.Last.Value.position.x);
+                distance = Mathf.Abs(source.coordinates.x - queue.Last.Value.position.x);
             }
             else if (source == destination.getNorth() || source == destination.getSouth())
             {
                 // traveling on the z-axis
-                distance = Mathf.Abs(this.position.z - queue.Last.Value.position.z);
+                distance = Mathf.Abs(source.coordinates.z - queue.Last.Value.position.z);
             }
-            return distance < (GraphicalRoadnet.roadWidth + right_lane_offset);
+            return distance < (2 * GraphicalRoadnet.roadWidth);
         }
 
         return false;
