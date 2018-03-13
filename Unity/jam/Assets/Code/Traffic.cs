@@ -11,7 +11,7 @@ internal class Traffic : MonoBehaviour
     {
         // add cars
         cars.Add(new Car(network, true));
-        int number_of_cars = 0;
+        int number_of_cars = 120;
         for (int i = 0; i < number_of_cars; i++)
         {
             cars.Add(new Car(network, false));
