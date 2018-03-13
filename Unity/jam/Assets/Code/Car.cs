@@ -9,8 +9,8 @@ internal class Car
     private static float right_lane_offset = GraphicalRoadnet.roadWidth * 0.25f;
 
     private static float speed_scaler = 0.0005f;
-    private static float max_speed = 60.0f;
-    private static float acceleration = 0.25f;//6.0f * speed_scaler;
+    private static float max_speed = 50.0f;
+    private static float acceleration = 0.1f;//6.0f * speed_scaler;
     private static float retardation = 10.0f;//40.0f * speed_scaler;
     private float speed = 0.0f;
 
@@ -32,6 +32,7 @@ internal class Car
     private bool waiting = false;
     private int wait_counter;
     private int wait_threshold;
+    private float angle_rad;
     private Vector3 turn_position;
     private int right_turn_delay = 50;
 
@@ -204,7 +205,7 @@ internal class Car
                 if (poller.AlreadyAcquired())
                 {
                     // When the animation is done.
-                    if (wait_counter >= wait_threshold)
+                    if (AnimationComplete())
                     {
                         // update the cars appearance
                         position.x = source.coordinates.x;
@@ -259,7 +260,9 @@ internal class Car
                         turning = true;
                         wait_threshold = right_turn_delay * TypeOfTurn();
                         turn_position = position;
+                        angle_rad = 0f;
                         wait_counter = 0;
+                        //UpdatePosition(); // may cause some glitching in the right and left turns...
                     }
                 }
             }
@@ -288,7 +291,7 @@ internal class Car
             else
             {
 
-                if (StartToBrake() && NextCar() != null && !NextCar().turning)
+                if (StartToBrake())
                 {
                     Retard();
                 }
@@ -298,7 +301,7 @@ internal class Car
                 }
 
                 float distance = DistanceNextCar();
-                if (distance == -1 || distance > GraphicalRoadnet.roadWidth || NextCar().turning)
+                if (distance == -1 || distance > GraphicalRoadnet.roadWidth)
                 {
                     UpdatePosition();
                 }
@@ -345,9 +348,18 @@ internal class Car
 
     }
 
+    private bool AnimationComplete()
+    {
+        if (to == "west") return source.coordinates.x - GraphicalRoadnet.roadWidth > turn_position.x;
+        else if (to == "east") return source.coordinates.x + GraphicalRoadnet.roadWidth < turn_position.x;
+        else if (to == "south") return source.coordinates.z - GraphicalRoadnet.roadWidth > turn_position.z;
+        else if (to == "north") return source.coordinates.z + GraphicalRoadnet.roadWidth < turn_position.z;
+        throw new InvalidOperationException("Car not traveling anywhere");
+    }
+
     private void AnimateTurn()
     {
-        wait_counter++;
+        Accelerate();
         int turn = TypeOfTurn();
         
         if (turn == 1)
@@ -371,10 +383,11 @@ internal class Car
     // Turn the car right in an intersection
     private void AnimateRight()
     {
-        float angle_deg = 90.0f / wait_threshold;
-        float angle_rad = (Mathf.PI / 2) / wait_threshold * wait_counter;
-
         float radius = GraphicalRoadnet.roadWidth;
+        float arc = (radius - right_lane_offset) * 2 * Mathf.PI / 4;
+
+        float angle_deg = 90 / (arc / (speed * speed_scaler));
+        angle_rad += angle_deg * (Mathf.PI / 180);
 
         if (from == "north" && to == "west")
         {
@@ -406,10 +419,11 @@ internal class Car
     // Turn the car left in an intersection
     private void AnimateLeft()
     {
-        float angle_deg = -90.0f / wait_threshold;
-        float angle_rad = -(Mathf.PI / 2) / wait_threshold * wait_counter;
-
         float radius = GraphicalRoadnet.roadWidth;
+        float arc = (radius + right_lane_offset) * 2 * Mathf.PI / 4;
+
+        float angle_deg = -90 / (arc / (speed * speed_scaler));
+        angle_rad += angle_deg * (Mathf.PI / 180);
 
         if (from == "west" && to == "north")
         {
@@ -441,12 +455,15 @@ internal class Car
     // Move the car forward in an intersection
     private void AnimateForward()
     {
-        float step = GraphicalRoadnet.roadWidth * 2 / wait_threshold;
-        if (direction.x == 1) position.x += step;    // heading east
-        if (direction.x == -1) position.x -= step;   // heading west
-        if (direction.y == 1) position.z += step;    // heading north
-        if (direction.y == -1) position.z -= step;   // heading south
-        model.transform.position = position;
+        float step = (GraphicalRoadnet.roadWidth * 2) * (speed * speed_scaler);
+
+        if (direction.x == 1) turn_position.x += step;    // heading east
+        if (direction.x == -1) turn_position.x -= step;   // heading west
+        if (direction.y == 1) turn_position.z += step;    // heading north
+        if (direction.y == -1) turn_position.z -= step;   // heading south
+
+        turn_position.y = position.y;
+        model.transform.position = turn_position;
     }
 
     /** 
@@ -488,6 +505,18 @@ internal class Car
         return 0;
     }
 
+    public Vector3 getPosition()
+    {
+        if (turning)
+        {
+            return turn_position;
+        }
+        else
+        {
+            return position;
+        }
+    }
+
     private float DistanceNextCar()
     {
         LinkedListNode<Car> next = current_queue.Find(this).Previous;
@@ -497,12 +526,12 @@ internal class Car
             if (this.position.x == next_car.position.x)
             {
                 // traveling north/south
-                return Mathf.Abs(this.position.z - next_car.position.z);
+                return Mathf.Abs(this.position.z - next_car.getPosition().z);
             }
             else if (this.position.z == next_car.position.z)
             {
                 // traveling north/south
-                return Mathf.Abs(this.position.x - next_car.position.x);
+                return Mathf.Abs(this.position.x - next_car.getPosition().x);
             }
             else
             {
