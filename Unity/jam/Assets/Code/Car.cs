@@ -100,24 +100,28 @@ internal class Car
         {
             current_queue = destination.WQ;
             from = "west";
+            to = "east";
         }
 
         if (destination == west)
         {
             current_queue = destination.EQ;
             from = "east";
+            to = "west";
         }
 
         if (destination == north)
         {
             current_queue = destination.SQ;
             from = "south";
+            to = "north";
         }
 
         if (destination == south)
         {
             current_queue = destination.NQ;
             from = "north";
+            to = "south";
         }
 
         current_queue.AddLast(this);    // join the current queue
@@ -291,8 +295,9 @@ internal class Car
             else
             {
 
-                if (StartToBrake() && NextCar() != null && !NextCar().turning)
+                if (StartToBrake())
                 {
+                    Log("brakes");
                     Retard();
                 }
                 else
@@ -333,13 +338,23 @@ internal class Car
 
     private bool StartToBrake()
     {
-        float brake_distance = speed * speed_scaler * 50;//(speed * speed) / (2 * retardation);
+        float brake_distance = speed * speed_scaler * 50; //(speed * speed) / (2 * retardation);
         float distance_next = DistanceNextCar();
 
         if (distance_next == -1)
         {
+            Log("to: "  + to);
             // no car infront
-            return false;
+            float distance_destination = 0;
+            if (to == "north" || to == "south") // traveling north/south
+            {
+                distance_destination = Mathf.Abs(this.position.z - destination.coordinates.z);
+            }
+            else if (to == "east" || to == "west") // traveling west/east   
+            {
+                distance_destination = Mathf.Abs(this.position.x - destination.coordinates.x);
+            }
+            return brake_distance > distance_destination;
         }
         else
         {
