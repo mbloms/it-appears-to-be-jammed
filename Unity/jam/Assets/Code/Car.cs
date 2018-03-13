@@ -9,9 +9,9 @@ internal class Car
     private static float right_lane_offset = GraphicalRoadnet.roadWidth * 0.25f;
 
     private static float speed_scaler = 0.0005f;
-    private static float max_speed = 60.0f * speed_scaler;
-    private static float acceleration = 0.005f;//6.0f * speed_scaler;
-    private static float retardation = 0.25f;//40.0f * speed_scaler;
+    private static float max_speed = 60.0f;
+    private static float acceleration = 0.25f;//6.0f * speed_scaler;
+    private static float retardation = 10.0f;//40.0f * speed_scaler;
     private float speed = 0.0f;
 
     private float intersection_speed = max_speed * 0.5f;
@@ -26,6 +26,8 @@ internal class Car
     private LinkedList<Car> current_queue;
     private LinkedList<Car> previous_queue;
     private string from,to;
+
+    public bool turning;
 
     private bool waiting = false;
     private int wait_counter;
@@ -224,7 +226,6 @@ internal class Car
                         if (source == destination.getEast())
                         {
                             current_queue = destination.EQ;
-
                         }
                         else if (source == destination.getWest())
                         {
@@ -242,6 +243,7 @@ internal class Car
 
                         // 3. Stop waiting
                         waiting = false;
+                        turning = false;
                         poller.Free();
 
                     } else {
@@ -254,6 +256,7 @@ internal class Car
                     /** attempt to acquire lock until success */
                     if (poller.Acquire())
                     {
+                        turning = true;
                         wait_threshold = right_turn_delay * TypeOfTurn();
                         turn_position = position;
                         wait_counter = 0;
@@ -284,17 +287,18 @@ internal class Car
             // Log("driving old:" + previous_queue.Count + " cur:" + current_queue.Count);
             else
             {
-                if (ApproachingIntersection())
+
+                if (StartToBrake() && NextCar() != null && !NextCar().turning)
                 {
-                    ChangeSpeed(intersection_speed);
+                    Retard();
                 }
                 else
                 {
-                    ChangeSpeed(max_speed);
+                    Accelerate();
                 }
 
                 float distance = DistanceNextCar();
-                if (distance == -1 || distance > GraphicalRoadnet.roadWidth)
+                if (distance == -1 || distance > GraphicalRoadnet.roadWidth || NextCar().turning)
                 {
                     UpdatePosition();
                 }
@@ -304,6 +308,41 @@ internal class Car
                 }
             }
         }
+    }
+
+    private Car NextCar()
+    {
+        Car next_car = null;
+        LinkedListNode<Car> next = current_queue.Find(this).Previous;
+        if (next != null) next_car = next.Value;
+        return next_car;
+    }
+
+    private void Retard()
+    {
+        speed = Mathf.Max(speed - retardation, 0.0f);
+    }
+
+    private void Accelerate()
+    {
+        speed = Mathf.Min(speed + acceleration, max_speed);
+    }
+
+    private bool StartToBrake()
+    {
+        float brake_distance = speed * speed_scaler * 50;//(speed * speed) / (2 * retardation);
+        float distance_next = DistanceNextCar();
+
+        if (distance_next == -1)
+        {
+            // no car infront
+            return false;
+        }
+        else
+        {
+            return brake_distance > distance_next;
+        }
+
     }
 
     private void AnimateTurn()
@@ -379,7 +418,6 @@ internal class Car
         }
         else if (from == "east" && to == "south")
         {
-            Debug.Log("gke");
             turn_position.x = position.x - (2 * radius - 3 * right_lane_offset) * (Mathf.Cos(angle_rad + Mathf.PI / 2));
             turn_position.z = position.z - (2 * radius - 3 * right_lane_offset) + (2 * radius - 3 * right_lane_offset) * Mathf.Sin(angle_rad + Mathf.PI / 2);
         }
@@ -448,18 +486,6 @@ internal class Car
             if (to == "south") return 3;    // left
         }
         return 0;
-    }
-
-    private void ChangeSpeed(float target_speed)
-    {
-        if (speed < target_speed)
-        {
-            speed = Mathf.Min(speed + acceleration * target_speed, target_speed);
-        }
-        else if (speed > target_speed)
-        {
-            speed = Mathf.Max(speed - retardation * target_speed, target_speed);
-        }
     }
 
     private float DistanceNextCar()
@@ -633,8 +659,8 @@ internal class Car
         else if (direction.x == 1 && direction.y == 0) x_modifier = speed;
         else if (direction.x == -1 && direction.y == 0) x_modifier = -speed;
         // update positional data
-        position.x = position.x + x_modifier;
-        position.z = position.z + z_modifier;
+        position.x = position.x + x_modifier * speed_scaler;
+        position.z = position.z + z_modifier * speed_scaler;
         //  update actual model
         model.transform.position = position;
     }
