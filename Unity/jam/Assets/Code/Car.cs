@@ -204,7 +204,7 @@ internal class Car
                 if (poller.AlreadyAcquired())
                 {
                     // When the animation is done.
-                    if (wait_counter >= wait_threshold)
+                    if (AnimationComplete())
                     {
                         // update the cars appearance
                         position.x = source.coordinates.x;
@@ -345,9 +345,18 @@ internal class Car
 
     }
 
+    private bool AnimationComplete()
+    {
+        if (to == "west") return source.coordinates.x - GraphicalRoadnet.roadWidth > turn_position.x;
+        else if (to == "east") return source.coordinates.x + GraphicalRoadnet.roadWidth < turn_position.x;
+        else if (to == "south") return source.coordinates.z - GraphicalRoadnet.roadWidth > turn_position.z;
+        else if (to == "north") return source.coordinates.z + GraphicalRoadnet.roadWidth < turn_position.z;
+        throw new InvalidOperationException("Car not traveling anywhere");
+    }
+
     private void AnimateTurn()
     {
-        wait_counter++;
+        Accelerate();
         int turn = TypeOfTurn();
         
         if (turn == 1)
@@ -441,12 +450,14 @@ internal class Car
     // Move the car forward in an intersection
     private void AnimateForward()
     {
-        float step = GraphicalRoadnet.roadWidth * 2 / wait_threshold;
-        if (direction.x == 1) position.x += step;    // heading east
-        if (direction.x == -1) position.x -= step;   // heading west
-        if (direction.y == 1) position.z += step;    // heading north
-        if (direction.y == -1) position.z -= step;   // heading south
-        model.transform.position = position;
+        float step = GraphicalRoadnet.roadWidth * 2 / speed;
+        if (direction.x == 1) turn_position.x += step;    // heading east
+        if (direction.x == -1) turn_position.x -= step;   // heading west
+        if (direction.y == 1) turn_position.z += step;    // heading north
+        if (direction.y == -1) turn_position.z -= step;   // heading south
+
+        turn_position.y = position.y;
+        model.transform.position = turn_position;
     }
 
     /** 
