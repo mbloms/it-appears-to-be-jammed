@@ -264,6 +264,10 @@ internal class Car
                         wait_counter = 0;
                         //UpdatePosition(); // may cause some glitching in the right and left turns...
                     }
+                    else
+                    {
+                        speed = 0;
+                    }
                 }
             }
         }
