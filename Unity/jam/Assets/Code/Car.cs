@@ -288,7 +288,7 @@ internal class Car
             else
             {
 
-                if (StartToBrake() && NextCar() != null && !NextCar().turning)
+                if (StartToBrake())
                 {
                     Retard();
                 }
@@ -298,7 +298,7 @@ internal class Car
                 }
 
                 float distance = DistanceNextCar();
-                if (distance == -1 || distance > GraphicalRoadnet.roadWidth || NextCar().turning)
+                if (distance == -1 || distance > GraphicalRoadnet.roadWidth)
                 {
                     UpdatePosition();
                 }
@@ -488,6 +488,18 @@ internal class Car
         return 0;
     }
 
+    public Vector3 getPosition()
+    {
+        if (turning)
+        {
+            return turn_position;
+        }
+        else
+        {
+            return position;
+        }
+    }
+
     private float DistanceNextCar()
     {
         LinkedListNode<Car> next = current_queue.Find(this).Previous;
@@ -497,12 +509,12 @@ internal class Car
             if (this.position.x == next_car.position.x)
             {
                 // traveling north/south
-                return Mathf.Abs(this.position.z - next_car.position.z);
+                return Mathf.Abs(this.position.z - next_car.getPosition().z);
             }
             else if (this.position.z == next_car.position.z)
             {
                 // traveling north/south
-                return Mathf.Abs(this.position.x - next_car.position.x);
+                return Mathf.Abs(this.position.x - next_car.getPosition().x);
             }
             else
             {
