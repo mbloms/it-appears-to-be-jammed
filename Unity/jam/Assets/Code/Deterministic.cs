@@ -2,6 +2,6 @@
 
 internal class Deterministic
 {
-    static int SEED = 423456789;
+    static int SEED = 623456789;
     static public Random random = new Random(SEED);
 }

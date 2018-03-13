@@ -9,8 +9,8 @@ internal class Car
     private static float right_lane_offset = GraphicalRoadnet.roadWidth * 0.25f;
 
     private static float speed_scaler = 0.0005f;
-    private static float max_speed = 60.0f;
-    private static float acceleration = 0.25f;//6.0f * speed_scaler;
+    private static float max_speed = 50.0f;
+    private static float acceleration = 0.1f;//6.0f * speed_scaler;
     private static float retardation = 10.0f;//40.0f * speed_scaler;
     private float speed = 0.0f;
 
@@ -32,6 +32,7 @@ internal class Car
     private bool waiting = false;
     private int wait_counter;
     private int wait_threshold;
+    private float angle_rad;
     private Vector3 turn_position;
     private int right_turn_delay = 50;
 
@@ -259,7 +260,9 @@ internal class Car
                         turning = true;
                         wait_threshold = right_turn_delay * TypeOfTurn();
                         turn_position = position;
+                        angle_rad = 0f;
                         wait_counter = 0;
+                        //UpdatePosition(); // may cause some glitching in the right and left turns...
                     }
                 }
             }
@@ -380,10 +383,11 @@ internal class Car
     // Turn the car right in an intersection
     private void AnimateRight()
     {
-        float angle_deg = 90.0f / wait_threshold;
-        float angle_rad = (Mathf.PI / 2) / wait_threshold * wait_counter;
-
         float radius = GraphicalRoadnet.roadWidth;
+        float arc = (radius - right_lane_offset) * 2 * Mathf.PI / 4;
+
+        float angle_deg = 90 / (arc / (speed * speed_scaler));
+        angle_rad += angle_deg * (Mathf.PI / 180);
 
         if (from == "north" && to == "west")
         {
@@ -415,10 +419,11 @@ internal class Car
     // Turn the car left in an intersection
     private void AnimateLeft()
     {
-        float angle_deg = -90.0f / wait_threshold;
-        float angle_rad = -(Mathf.PI / 2) / wait_threshold * wait_counter;
-
         float radius = GraphicalRoadnet.roadWidth;
+        float arc = (radius + right_lane_offset) * 2 * Mathf.PI / 4;
+
+        float angle_deg = -90 / (arc / (speed * speed_scaler));
+        angle_rad += angle_deg * (Mathf.PI / 180);
 
         if (from == "west" && to == "north")
         {
@@ -450,7 +455,8 @@ internal class Car
     // Move the car forward in an intersection
     private void AnimateForward()
     {
-        float step = GraphicalRoadnet.roadWidth * 2 / speed;
+        float step = (GraphicalRoadnet.roadWidth * 2) * (speed * speed_scaler);
+
         if (direction.x == 1) turn_position.x += step;    // heading east
         if (direction.x == -1) turn_position.x -= step;   // heading west
         if (direction.y == 1) turn_position.z += step;    // heading north
