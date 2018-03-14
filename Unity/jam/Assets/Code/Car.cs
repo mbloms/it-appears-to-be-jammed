@@ -10,8 +10,8 @@ internal class Car
 
     private static float speed_scaler = 0.0005f;
     private static float max_speed = 50.0f;
-    private static float acceleration = 0.1f;//6.0f * speed_scaler;
-    private static float retardation = 10.0f;//40.0f * speed_scaler;
+    private static float acceleration = 0.2f;//6.0f * speed_scaler;
+    private static float retardation = 1.0f;//40.0f * speed_scaler;
     private float speed = 0.0f;
 
     private float intersection_speed = max_speed * 0.5f;
@@ -35,6 +35,7 @@ internal class Car
     private float angle_rad;
     private Vector3 turn_position;
     private int right_turn_delay = 50;
+    private int reaction_time;
 
     private IntersectionPoller poller;
 
@@ -270,8 +271,14 @@ internal class Car
                     }
                     else
                     {
-                        speed = 0;
+                        reaction_time = 20;
+                        speed = 0f;
                     }
+                }
+                else
+                {
+                    reaction_time = 20;
+                    speed = 0f;
                 }
             }
         }
@@ -291,34 +298,17 @@ internal class Car
         /** continue driving towards next destination*/
         else
         {
-            if (speed < 0)
-            {
-                speed++;
-            }
             // Log("driving old:" + previous_queue.Count + " cur:" + current_queue.Count);
+            if (StartToBrake())
+            {
+                Retard();
+                reaction_time = 20;
+            }
             else
             {
-
-                if (StartToBrake())
-                {
-                    Log("brakes");
-                    Retard();
-                }
-                else
-                {
-                    Accelerate();
-                }
-
-                float distance = DistanceNextCar();
-                if (distance == -1 || distance > GraphicalRoadnet.roadWidth)
-                {
-                    UpdatePosition();
-                }
-                else
-                {
-                    speed = -30f;
-                }
+                Accelerate();
             }
+            UpdatePosition();
         }
     }
 
@@ -337,7 +327,14 @@ internal class Car
 
     private void Accelerate()
     {
-        speed = Mathf.Min(speed + acceleration, max_speed);
+        if (reaction_time > 0)
+        {
+            reaction_time--;
+        }
+        else
+        {
+            speed = Mathf.Min(speed + acceleration, max_speed);
+        }
     }
 
     private bool StartToBrake()
@@ -347,7 +344,6 @@ internal class Car
 
         if (distance_next == -1)
         {
-            Log("to: "  + to);
             // no car infront
             float distance_destination = 0;
             if (to == "north" || to == "south") // traveling north/south
@@ -358,11 +354,11 @@ internal class Car
             {
                 distance_destination = Mathf.Abs(this.position.x - destination.coordinates.x);
             }
-            return brake_distance > distance_destination;
+            return brake_distance > distance_destination/2;
         }
         else
         {
-            return brake_distance > distance_next;
+            return brake_distance > distance_next || distance_next < GraphicalRoadnet.roadWidth;
         }
 
     }
