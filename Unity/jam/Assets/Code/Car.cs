@@ -198,85 +198,61 @@ internal class Car
         /** if waiting for OK to drive */
         if (waiting)
         {
-            // Log("waiting for OK to drive to " + destination.coordinates);
-
-            /** if you are at the top of the queue */
-            if (current_queue.First.Value == this)
+            /** when the lock is acquired*/
+            if (turning)
             {
-                /** when the lock is acquired*/
-                if (turning)
+                // When the animation is done.
+                if (AnimationComplete())
                 {
-                    // When the animation is done.
-                    if (AnimationComplete())
-                    {
-                        // update the cars appearance
-                        position.x = source.coordinates.x;
-                        position.z = source.coordinates.z;
-                        UpdateDirection();
+                    // update the cars appearance
+                    position.x = source.coordinates.x;
+                    position.z = source.coordinates.z;
+                    UpdateDirection();
 
-                        // apply offset
-                        if (direction.x == 1) position.x += GraphicalRoadnet.roadWidth;    // heading east
-                        if (direction.x == -1) position.x -= GraphicalRoadnet.roadWidth;   // heading west
-                        if (direction.y == 1) position.z += GraphicalRoadnet.roadWidth;    // heading north
-                        if (direction.y == -1) position.z -= GraphicalRoadnet.roadWidth;   // heading south
-                        model.transform.position = position;
+                    // apply offset
+                    if (direction.x == 1) position.x += GraphicalRoadnet.roadWidth;    // heading east
+                    if (direction.x == -1) position.x -= GraphicalRoadnet.roadWidth;   // heading west
+                    if (direction.y == 1) position.z += GraphicalRoadnet.roadWidth;    // heading north
+                    if (direction.y == -1) position.z -= GraphicalRoadnet.roadWidth;   // heading south
+                    model.transform.position = position;
 
-                        // 1. leave the previous queue
-                        previous_queue = current_queue;
-                        previous_queue.Remove(this);
+                    // 1. leave the previous queue
+                    previous_queue.Remove(this);
 
-                        // 2. enter the new queue and set `from`.
-                        if (source == destination.getEast())
-                        {
-                            current_queue = destination.EQ;
-                        }
-                        else if (source == destination.getWest())
-                        {
-                            current_queue = destination.WQ;
-                        }
-                        else if (source == destination.getNorth())
-                        {
-                            current_queue = destination.NQ;
-                        }
-                        else if (source == destination.getSouth())
-                        {
-                            current_queue = destination.SQ;
-                        }
-                        current_queue.AddLast(this);
+                    // 3. Stop waiting
+                    waiting = false;
+                    turning = false;
+                    poller.Free();
 
-                        // 3. Stop waiting
-                        waiting = false;
-                        turning = false;
-                        poller.Free();
-
-                    } else {
-                        /** animate movement */
-                        AnimateTurn();
-                    }
                 }
-                else if (!DestinationQueueFull())
+                else
                 {
-                    /** attempt to acquire lock until success */
-                    if (poller.Acquire())
-                    {
-                        turning = true;
-                        wait_threshold = right_turn_delay * TypeOfTurn();
-                        turn_position = position;
-                        angle_rad = 0f;
-                        wait_counter = 0;
-                        //UpdatePosition(); // may cause some glitching in the right and left turns...
-                    }
-                    else
-                    {
-                        reaction_debt = reaction_time;
-                        speed = 0f;
-                    }
+                    /** animate movement */
+                    AnimateTurn();
+                }
+            }
+            else if (!DestinationQueueFull())
+            {
+                /** attempt to acquire lock until success */
+                if (poller.Acquire())
+                {
+                    turning = true;
+                    wait_threshold = right_turn_delay * TypeOfTurn();
+                    turn_position = position;
+                    angle_rad = 0f;
+                    wait_counter = 0;
+                    //UpdatePosition(); // may cause some glitching in the right and left turns...
                 }
                 else
                 {
                     reaction_debt = reaction_time;
                     speed = 0f;
                 }
+            }
+            else
+            {
+                reaction_debt = reaction_time;
+                speed = 0f;
             }
         }
         /** this event is triggered in the frame that the car arrives at the destination */
@@ -290,7 +266,28 @@ internal class Car
             destination = next_hop;
 
             // enter the next state; waiting for OK at the intersection
-            waiting = true;     
+            waiting = true;
+            previous_queue = current_queue;
+            
+            // 2. enter the new queue and set `from`.
+            if (source == destination.getEast())
+            {
+                current_queue = destination.EQ;
+            }
+            else if (source == destination.getWest())
+            {
+                current_queue = destination.WQ;
+            }
+            else if (source == destination.getNorth())
+            {
+                current_queue = destination.NQ;
+            }
+            else if (source == destination.getSouth())
+            {
+                current_queue = destination.SQ;
+            }
+            current_queue.AddLast(this);
+
         }
         /** continue driving towards next destination*/
         else
