@@ -372,23 +372,26 @@ internal class Car
 
     private float DistanceNextThing()
     {
-        float distance_next = DistanceNextCar();
-
-        if (distance_next == -1)
+        float distance_next_car = DistanceNextCar();
+        float distance_next = -1;
+        
+        // no car infront
+        if (to == "north" || to == "south") // traveling north/south
         {
-            // no car infront
-            if (to == "north" || to == "south") // traveling north/south
-            {
-                distance_next = Mathf.Abs(position.z - destination.coordinates.z);
-            }
-            else if (to == "east" || to == "west") // traveling west/east
-            {
-                distance_next = Mathf.Abs(position.x - destination.coordinates.x);
-            }            //Log("distance to intersection: " + distance);
-            return distance_next;
-
+            distance_next = Mathf.Abs(position.z - destination.coordinates.z);
         }
-        return distance_next;
+        else if (to == "east" || to == "west") // traveling west/east
+        {
+            distance_next = Mathf.Abs(position.x - destination.coordinates.x);
+        }            //Log("distance to intersection: " + distance);
+
+        if (distance_next_car == -1)
+        {
+            return distance_next;
+        }
+
+        return Mathf.Min(distance_next_car, distance_next);
+
     }
 
     private bool StartToBrake()
