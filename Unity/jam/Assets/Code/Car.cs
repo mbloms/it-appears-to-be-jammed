@@ -310,10 +310,15 @@ internal class Car
 
     private Car NextCar()
     {
-        Car next_car = null;
         LinkedListNode<Car> next = current_queue.Find(this).Previous;
-        if (next != null) next_car = next.Value;
-        return next_car;
+        if (next != null)
+        {
+            return next.Value;
+        }
+        else
+        {
+            return null;
+        }
     }
 
     private void Retard()
@@ -530,19 +535,18 @@ internal class Car
 
     private float DistanceNextCar()
     {
-        LinkedListNode<Car> next = current_queue.Find(this).Previous;
+        Car next = NextCar();
         if (next != null)
         {
-            Car next_car = next.Value;
-            if (this.position.x == next_car.position.x)
+            if (this.position.x == next.position.x)
             {
                 // traveling north/south
-                return Mathf.Abs(this.position.z - next_car.getPosition().z);
+                return Mathf.Abs(this.position.z - next.getPosition().z);
             }
-            else if (this.position.z == next_car.position.z)
+            else if (this.position.z == next.position.z)
             {
                 // traveling north/south
-                return Mathf.Abs(this.position.x - next_car.getPosition().x);
+                return Mathf.Abs(this.position.x - next.getPosition().x);
             }
             else
             {
