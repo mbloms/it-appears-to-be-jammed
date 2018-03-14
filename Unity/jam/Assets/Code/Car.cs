@@ -350,20 +350,7 @@ internal class Car
         Car next = NextCar();
         if (next != null)
         {
-            if (this.position.x == next.position.x)
-            {
-                // traveling north/south
-                return Mathf.Abs(this.position.z - next.getPosition().z);
-            }
-            else if (this.position.z == next.position.z)
-            {
-                // traveling north/south
-                return Mathf.Abs(this.position.x - next.getPosition().x);
-            }
-            else
-            {
-                throw new InvalidOperationException("Cars in same queue but different axes.");
-            }
+            return Vector3.Distance(position, next.position);
         }
         return -1;
     }
@@ -375,14 +362,7 @@ internal class Car
         if (distance_next == -1)
         {
             // no car infront
-            if (to == "north" || to == "south") // traveling north/south
-            {
-                distance_next = Mathf.Abs(position.z - destination.coordinates.z);
-            }
-            else if (to == "east" || to == "west") // traveling west/east   
-            {
-                distance_next = Mathf.Abs(position.x - destination.coordinates.x);
-            }
+            return Vector3.Distance(position, destination.coordinates);
         }
         return distance_next;
     }
@@ -592,29 +572,13 @@ internal class Car
 
     private bool DestinationQueueFull()
     {
-        LinkedList<Car> queue = null;
-        if (source == destination.getEast()) { queue = destination.EQ; }
-        else if (source == destination.getWest()) { queue = destination.WQ; }
-        else if (source == destination.getNorth()) { queue = destination.NQ; }
-        else if (source == destination.getSouth()) { queue = destination.SQ; }
+        float distance = DistanceNextCar();
 
-        if (queue.Last != null)
+        if (distance == -1)
         {
-            float distance = -1; 
-            if (source == destination.getEast() || source == destination.getWest())
-            {
-                // traveling on the x-axis
-                distance = Mathf.Abs(source.coordinates.x - queue.Last.Value.position.x);
-            }
-            else if (source == destination.getNorth() || source == destination.getSouth())
-            {
-                // traveling on the z-axis
-                distance = Mathf.Abs(source.coordinates.z - queue.Last.Value.position.z);
-            }
-            return distance < (2 * GraphicalRoadnet.roadWidth);
+            return false;
         }
-
-        return false;
+        return distance < (2 * GraphicalRoadnet.roadWidth);
     }
 
     private bool ApproachingIntersection()
