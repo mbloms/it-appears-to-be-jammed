@@ -31,9 +31,9 @@ internal class Intersection
         this.coordinates = vector3;
     }
 
-    public IntersectionPoller getPoller(Car car, string from, string to)
+    public IntersectionPoller getPoller(string from, string to)
     {
-        return new IntersectionPoller(this, car, from, to);
+        return new IntersectionPoller(this, from, to);
     }
 
     public Intersection getNorth() {return north;}
