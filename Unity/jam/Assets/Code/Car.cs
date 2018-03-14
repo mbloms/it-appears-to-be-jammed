@@ -361,6 +361,10 @@ internal class Car
 
         if (distance_next == -1)
         {
+            if (destination.Unlocked())
+            {
+                return 9999;
+            }
             // no car infront
             if (to == "north" || to == "south") // traveling north/south
             {

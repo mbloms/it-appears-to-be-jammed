@@ -72,6 +72,11 @@ internal class Intersection
         if (q4) {qse = false;}
     }
 
+    public bool Unlocked()
+    {
+        return !(qne || qnv || qse || qsv);
+    }
+
     public void AddConnection(int connection_id)
     {
         Intersection connection = roadnet.intersections[connection_id];
