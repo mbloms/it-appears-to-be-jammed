@@ -94,11 +94,6 @@ internal class IntersectionPoller
         }
     }
 
-    public bool AlreadyAcquired()
-    {
-        return locked;
-    }
-
     public bool Acquire()
     {
         bool lock_acquired = target.Acquire(q1, q2, q3, q4);

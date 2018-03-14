@@ -203,7 +203,7 @@ internal class Car
             if (current_queue.First.Value == this)
             {
                 /** when the lock is acquired*/
-                if (poller.AlreadyAcquired())
+                if (turning)
                 {
                     // When the animation is done.
                     if (AnimationComplete())
