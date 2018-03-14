@@ -245,14 +245,14 @@ internal class Car
                 }
                 else
                 {
-                    reaction_debt = reaction_time;
                     speed = 0f;
+                    reaction_debt = reaction_time/5;
                 }
             }
             else
             {
-                reaction_debt = reaction_time;
                 speed = 0f;
+                reaction_debt = reaction_time/5;
             }
         }
         /** this event is triggered in the frame that the car arrives at the destination */
@@ -287,7 +287,7 @@ internal class Car
                 current_queue = destination.SQ;
             }
             current_queue.AddLast(this);
-
+            reaction_debt = 0;
         }
         /** continue driving towards next destination*/
         else
@@ -400,7 +400,15 @@ internal class Car
     {
         if (StartToBrake())
         {
-            Retard(NextCar().speed);
+            var next_speed = NextCar().speed;
+            if (speed > next_speed)
+            {
+                Retard(next_speed);
+            }
+            else
+            {
+                Accelerate(NextCar().speed);
+            }
         }
         else
         {
