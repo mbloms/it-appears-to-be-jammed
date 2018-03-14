@@ -35,7 +35,8 @@ internal class Car
     private float angle_rad;
     private Vector3 turn_position;
     private int right_turn_delay = 50;
-    private int reaction_time;
+    private int reaction_debt;
+    private readonly int reaction_time = 50;
 
     private IntersectionPoller poller;
 
@@ -267,13 +268,13 @@ internal class Car
                     }
                     else
                     {
-                        reaction_time = 50;
+                        reaction_debt = reaction_time;
                         speed = 0f;
                     }
                 }
                 else
                 {
-                    reaction_time = 50;
+                    reaction_debt = reaction_time;
                     speed = 0f;
                 }
             }
@@ -323,14 +324,14 @@ internal class Car
     private void Retard()
     {
         speed = Mathf.Max(speed - retardation, 0.0f);
-        reaction_time = 50;
+        reaction_debt = reaction_time;
     }
 
     private void Accelerate()
     {
-        if (reaction_time > 0)
+        if (reaction_debt > 0)
         {
-            reaction_time--;
+            reaction_debt--;
         }
         else
         {
