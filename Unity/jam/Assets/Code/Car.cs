@@ -126,7 +126,7 @@ internal class Car
         }
 
         current_queue.AddLast(this);    // join the current queue
-        poller = source.getPoller(this, from, to);
+        poller = source.getPoller(from, to);
 
         return destination;
     }
@@ -182,7 +182,7 @@ internal class Car
             from = "south";
         }
 
-        poller = origin.getPoller(this, from, to);
+        poller = origin.getPoller(from, to);
         
         return next_hop;
     }
@@ -194,10 +194,6 @@ internal class Car
 
     public void Drive()
     {
-        if (poller != null)
-        {
-            poller.Update();
-        }
         /** if waiting for OK to drive */
         if (waiting)
         {
@@ -207,7 +203,7 @@ internal class Car
             if (current_queue.First.Value == this)
             {
                 /** when the lock is acquired*/
-                if (poller.AlreadyAcquired())
+                if (turning)
                 {
                     // When the animation is done.
                     if (AnimationComplete())

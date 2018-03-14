@@ -14,17 +14,10 @@ internal class IntersectionPoller
     private readonly bool q4;
 
     private bool locked;
-    private bool auto;
-    private int time;
-    
-    private readonly Car car;
-    private LinkedList<Car> current_queue;
-    private LinkedList<Car> next_queue;
 
-    public IntersectionPoller(Intersection target, Car car, string from, string to)
+    public IntersectionPoller(Intersection target, string from, string to)
     {
         this.target = target;
-        this.car = car;
         switch (from)
         {
             case "north":
@@ -101,24 +94,13 @@ internal class IntersectionPoller
         }
     }
 
-    public LinkedList<Car> GetQueue()
-    {
-        return current_queue;
-    }
-
-    public bool AlreadyAcquired()
-    {
-        return locked;
-    }
-
     public bool Acquire()
     {
-        bool lock_acquired = target.Acquire(q1, q2, q3, q4);
-        if (lock_acquired)
+        if (target.Acquire(q1, q2, q3, q4))
         {
             locked = true;
         }
-        return lock_acquired;
+        return locked;
     }
 
     public void Free()
@@ -127,23 +109,6 @@ internal class IntersectionPoller
         {
             locked = false;
             target.Free(q1,q2,q3,q4);
-        }
-    }
-    /**
-     * Lock in `time` iterations. 
-     */
-    public void Free(int time)
-    {
-        auto = true;
-        this.time = time;
-    }
-
-    public void Update()
-    {
-        if (auto)
-        {
-            time--;
-            if (time == 0) { Free(); }
         }
     }
 }
