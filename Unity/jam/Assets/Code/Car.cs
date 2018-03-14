@@ -350,7 +350,7 @@ internal class Car
         Car next = NextCar();
         if (next != null)
         {
-            return Vector3.Distance(position, next.position);
+            return Vector3.Distance(getPosition(), next.getPosition());
         }
         return -1;
     }
@@ -362,7 +362,16 @@ internal class Car
         if (distance_next == -1)
         {
             // no car infront
-            return Vector3.Distance(position, destination.coordinates);
+            if (to == "north" || to == "south") // traveling north/south
+            {
+                distance_next = Mathf.Abs(position.z - destination.coordinates.z);
+            }
+            else if (to == "east" || to == "west") // traveling west/east
+            {
+                distance_next = Mathf.Abs(position.x - destination.coordinates.x);
+            }            //Log("distance to intersection: " + distance);
+            return distance_next;
+
         }
         return distance_next;
     }
@@ -389,7 +398,15 @@ internal class Car
 
     private void AnimateTurn()
     {
-        Accelerate();
+        if (StartToBrake())
+        {
+            Retard(NextCar().speed);
+        }
+        else
+        {
+            Accelerate();
+        }
+        
         int turn = TypeOfTurn();
         
         if (turn == 1)
@@ -572,13 +589,16 @@ internal class Car
 
     private bool DestinationQueueFull()
     {
-        float distance = DistanceNextCar();
-
-        if (distance == -1)
+        var next_car = NextCar();
+        if (next_car == null)
         {
             return false;
         }
-        return distance < (2 * GraphicalRoadnet.roadWidth);
+
+        var distance = Vector3.Distance(next_car.getPosition(), source.coordinates);
+        //Log("distance in Queue: " + distance);
+
+        return distance < (1.5 * GraphicalRoadnet.roadWidth);
     }
 
     private bool ApproachingIntersection()
