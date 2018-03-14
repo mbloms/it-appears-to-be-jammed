@@ -4,7 +4,8 @@ This GitHub-page is used as a blog for the final project in [Models and Simulati
 
 # Blog posts
 
-- 2018-03-08 [Basic collision avoidance](2018-03-08.md)
+- 2018-03-09 [Collision detection between cars](2018-03-09.md)
+- 2018-03-08 [Basic intersection detection](2018-03-08.md)
 - 2018-03-07 [First draft of intersection logic](2018-03-07.md)
 - 2018-03-06 [Introducing automobiles](2018-03-06.md)
 - 2018-02-28 [Fully generated road network](2018-02-28.md)
