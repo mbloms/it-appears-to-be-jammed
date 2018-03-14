@@ -30,8 +30,6 @@ internal class Car
     public bool turning;
 
     private bool waiting = false;
-    private int wait_counter;
-    private int wait_threshold;
     private float angle_rad;
     private Vector3 turn_position;
     private int right_turn_delay = 50;
@@ -227,6 +225,22 @@ internal class Car
                 }
                 else
                 {
+                    if (StartToBrake())
+                    {
+                        var next_speed = NextCar().speed;
+                        if (speed > next_speed)
+                        {
+                            Retard(next_speed);
+                        }
+                        else
+                        {
+                            Accelerate(NextCar().speed);
+                        }
+                    }
+                    else
+                    {
+                        Accelerate();
+                    }
                     /** animate movement */
                     AnimateTurn();
                 }
@@ -237,22 +251,20 @@ internal class Car
                 if (poller.Acquire())
                 {
                     turning = true;
-                    wait_threshold = right_turn_delay * TypeOfTurn();
-                    turn_position = position;
-                    angle_rad = 0f;
-                    wait_counter = 0;
-                    //UpdatePosition(); // may cause some glitching in the right and left turns...
                 }
                 else
                 {
-                    speed = 0f;
+                    Retard();
+                    AnimateTurn();
                     reaction_debt = reaction_time/5;
                 }
             }
             else
             {
-                speed = 0f;
+                Retard();
+                AnimateTurn();
                 reaction_debt = reaction_time/5;
+
             }
         }
         /** this event is triggered in the frame that the car arrives at the destination */
@@ -288,6 +300,9 @@ internal class Car
             }
             current_queue.AddLast(this);
             reaction_debt = 0;
+            
+            turn_position = position;
+            angle_rad = 0f;
         }
         /** continue driving towards next destination*/
         else
@@ -383,7 +398,7 @@ internal class Car
         float break_time = speed / (retardation * 0.9f);
         float brake_distance = speed_scaler * speed * break_time / 2;
        
-        return (brake_distance + GraphicalRoadnet.roadWidth) > distance_next;
+        return (brake_distance + GraphicalRoadnet.roadWidth) >= distance_next;
 
     }
 
@@ -397,24 +412,7 @@ internal class Car
     }
 
     private void AnimateTurn()
-    {
-        if (StartToBrake())
-        {
-            var next_speed = NextCar().speed;
-            if (speed > next_speed)
-            {
-                Retard(next_speed);
-            }
-            else
-            {
-                Accelerate(NextCar().speed);
-            }
-        }
-        else
-        {
-            Accelerate();
-        }
-        
+    {   
         int turn = TypeOfTurn();
         
         if (turn == 1)
