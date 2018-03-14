@@ -11,7 +11,7 @@ internal class Car
     private static float speed_scaler = 0.0005f;
     private static float max_speed = 50.0f;
     private static float acceleration = 0.1f;//6.0f * speed_scaler;
-    private static float retardation = 10.0f;//40.0f * speed_scaler;
+    private static float retardation = 1.0f;//40.0f * speed_scaler;
     private float speed = 0.0f;
 
     private float intersection_speed = max_speed * 0.5f;
@@ -270,7 +270,7 @@ internal class Car
                     }
                     else
                     {
-                        speed = 0;
+                        speed = 0f;
                     }
                 }
             }
@@ -301,7 +301,6 @@ internal class Car
 
                 if (StartToBrake())
                 {
-                    Log("brakes");
                     Retard();
                 }
                 else
@@ -309,15 +308,16 @@ internal class Car
                     Accelerate();
                 }
 
-                float distance = DistanceNextCar();
+                UpdatePosition();
+                /*float distance = DistanceNextCar();
                 if (distance == -1 || distance > GraphicalRoadnet.roadWidth)
                 {
-                    UpdatePosition();
+                    
                 }
                 else
                 {
                     speed = -30f;
-                }
+                }*/
             }
         }
     }
@@ -347,7 +347,6 @@ internal class Car
 
         if (distance_next == -1)
         {
-            Log("to: "  + to);
             // no car infront
             float distance_destination = 0;
             if (to == "north" || to == "south") // traveling north/south
@@ -362,7 +361,7 @@ internal class Car
         }
         else
         {
-            return brake_distance > distance_next;
+            return brake_distance > distance_next || distance_next < GraphicalRoadnet.roadWidth;
         }
 
     }
