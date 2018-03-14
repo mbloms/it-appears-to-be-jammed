@@ -343,30 +343,57 @@ internal class Car
             speed = Mathf.Min(speed + acceleration, max);
         }
     }
-
-    private bool StartToBrake()
+    
+    private float DistanceNextCar()
     {
-        float brake_distance = speed * speed_scaler * 50; //(speed * speed) / (2 * retardation);
+        Car next = NextCar();
+        if (next != null)
+        {
+            if (this.position.x == next.position.x)
+            {
+                // traveling north/south
+                return Mathf.Abs(this.position.z - next.getPosition().z);
+            }
+            else if (this.position.z == next.position.z)
+            {
+                // traveling north/south
+                return Mathf.Abs(this.position.x - next.getPosition().x);
+            }
+            else
+            {
+                throw new InvalidOperationException("Cars in same queue but different axes.");
+            }
+        }
+        return -1;
+    }
+
+    private float DistanceNextThing()
+    {
         float distance_next = DistanceNextCar();
 
         if (distance_next == -1)
         {
             // no car infront
-            float distance_destination = 0;
             if (to == "north" || to == "south") // traveling north/south
             {
-                distance_destination = Mathf.Abs(this.position.z - destination.coordinates.z);
+                distance_next = Mathf.Abs(position.z - destination.coordinates.z);
             }
             else if (to == "east" || to == "west") // traveling west/east   
             {
-                distance_destination = Mathf.Abs(this.position.x - destination.coordinates.x);
+                distance_next = Mathf.Abs(position.x - destination.coordinates.x);
             }
-            return (brake_distance + GraphicalRoadnet.roadWidth/2) > distance_destination;
         }
-        else
-        {
-            return (brake_distance + GraphicalRoadnet.roadWidth/2) > distance_next || distance_next < GraphicalRoadnet.roadWidth;
-        }
+        return distance_next;
+    }
+
+    private bool StartToBrake()
+    {
+        float distance_next = DistanceNextThing();
+        // Retardation scaled for margin.
+        float break_time = speed / (retardation * 0.9f);
+        float brake_distance = speed_scaler * speed * break_time / 2;
+       
+        return (brake_distance + GraphicalRoadnet.roadWidth) > distance_next;
 
     }
 
@@ -537,29 +564,6 @@ internal class Car
         {
             return position;
         }
-    }
-
-    private float DistanceNextCar()
-    {
-        Car next = NextCar();
-        if (next != null)
-        {
-            if (this.position.x == next.position.x)
-            {
-                // traveling north/south
-                return Mathf.Abs(this.position.z - next.getPosition().z);
-            }
-            else if (this.position.z == next.position.z)
-            {
-                // traveling north/south
-                return Mathf.Abs(this.position.x - next.getPosition().x);
-            }
-            else
-            {
-                throw new InvalidOperationException("Cars in same queue but different axes.");
-            }
-        }
-        return -1;
     }
 
     private bool DestinationQueueFull()
