@@ -273,6 +273,10 @@ internal class Car
                         speed = 0f;
                     }
                 }
+                else
+                {
+                    speed = 0f;
+                }
             }
         }
         /** this event is triggered in the frame that the car arrives at the destination */
