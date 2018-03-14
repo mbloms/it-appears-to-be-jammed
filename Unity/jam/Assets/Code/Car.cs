@@ -482,7 +482,7 @@ internal class Car
             q2 = true;
         }
 
-        if (Mathf.Abs(angle_rad) > 0)
+        if (Mathf.Abs(angle_rad) > 0.5)
         {
             poller.FreePartial(q1,q2,q3,q4);
         }
@@ -503,7 +503,7 @@ internal class Car
         if (direction.y ==  1) turn_position.z += step;    // heading north
         if (direction.y == -1) turn_position.z -= step;   // heading south
 
-        if (0 < Vector3.Distance(position, turn_position))
+        if (GraphicalRoadnet.roadWidth/3 < Vector3.Distance(position, turn_position))
         {
             // heading east
             if (direction.x ==  1) poller.FreePartial(false, false, true, false);
