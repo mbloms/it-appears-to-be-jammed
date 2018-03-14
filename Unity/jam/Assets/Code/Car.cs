@@ -35,7 +35,8 @@ internal class Car
     private float angle_rad;
     private Vector3 turn_position;
     private int right_turn_delay = 50;
-    private int reaction_time;
+    private int reaction_debt;
+    private readonly int reaction_time = 50;
 
     private IntersectionPoller poller;
 
@@ -267,13 +268,13 @@ internal class Car
                     }
                     else
                     {
-                        reaction_time = 20;
+                        reaction_debt = reaction_time;
                         speed = 0f;
                     }
                 }
                 else
                 {
-                    reaction_time = 20;
+                    reaction_debt = reaction_time;
                     speed = 0f;
                 }
             }
@@ -298,7 +299,6 @@ internal class Car
             if (StartToBrake())
             {
                 Retard();
-                reaction_time = 20;
             }
             else
             {
@@ -321,46 +321,79 @@ internal class Car
         }
     }
 
-    private void Retard()
+    private void Retard(float min = 0.0f)
     {
-        speed = Mathf.Max(speed - retardation, 0.0f);
+        speed = Mathf.Max(speed - retardation, min);
+        reaction_debt = reaction_time;
     }
 
     private void Accelerate()
     {
-        if (reaction_time > 0)
+        Accelerate(max_speed);
+    }
+
+    private void Accelerate(float max)
+    {
+        if (reaction_debt > 0)
         {
-            reaction_time--;
+            reaction_debt--;
         }
         else
         {
-            speed = Mathf.Min(speed + acceleration, max_speed);
+            speed = Mathf.Min(speed + acceleration, max);
         }
     }
-
-    private bool StartToBrake()
+    
+    private float DistanceNextCar()
     {
-        float brake_distance = speed * speed_scaler * 50; //(speed * speed) / (2 * retardation);
+        Car next = NextCar();
+        if (next != null)
+        {
+            if (this.position.x == next.position.x)
+            {
+                // traveling north/south
+                return Mathf.Abs(this.position.z - next.getPosition().z);
+            }
+            else if (this.position.z == next.position.z)
+            {
+                // traveling north/south
+                return Mathf.Abs(this.position.x - next.getPosition().x);
+            }
+            else
+            {
+                throw new InvalidOperationException("Cars in same queue but different axes.");
+            }
+        }
+        return -1;
+    }
+
+    private float DistanceNextThing()
+    {
         float distance_next = DistanceNextCar();
 
         if (distance_next == -1)
         {
             // no car infront
-            float distance_destination = 0;
             if (to == "north" || to == "south") // traveling north/south
             {
-                distance_destination = Mathf.Abs(this.position.z - destination.coordinates.z);
+                distance_next = Mathf.Abs(position.z - destination.coordinates.z);
             }
             else if (to == "east" || to == "west") // traveling west/east   
             {
-                distance_destination = Mathf.Abs(this.position.x - destination.coordinates.x);
+                distance_next = Mathf.Abs(position.x - destination.coordinates.x);
             }
-            return brake_distance > distance_destination/2;
         }
-        else
-        {
-            return brake_distance > distance_next || distance_next < GraphicalRoadnet.roadWidth;
-        }
+        return distance_next;
+    }
+
+    private bool StartToBrake()
+    {
+        float distance_next = DistanceNextThing();
+        // Retardation scaled for margin.
+        float break_time = speed / (retardation * 0.9f);
+        float brake_distance = speed_scaler * speed * break_time / 2;
+       
+        return (brake_distance + GraphicalRoadnet.roadWidth) > distance_next;
 
     }
 
@@ -531,29 +564,6 @@ internal class Car
         {
             return position;
         }
-    }
-
-    private float DistanceNextCar()
-    {
-        Car next = NextCar();
-        if (next != null)
-        {
-            if (this.position.x == next.position.x)
-            {
-                // traveling north/south
-                return Mathf.Abs(this.position.z - next.getPosition().z);
-            }
-            else if (this.position.z == next.position.z)
-            {
-                // traveling north/south
-                return Mathf.Abs(this.position.x - next.getPosition().x);
-            }
-            else
-            {
-                throw new InvalidOperationException("Cars in same queue but different axes.");
-            }
-        }
-        return -1;
     }
 
     private bool DestinationQueueFull()
