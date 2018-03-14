@@ -267,13 +267,13 @@ internal class Car
                     }
                     else
                     {
-                        reaction_time = 20;
+                        reaction_time = 50;
                         speed = 0f;
                     }
                 }
                 else
                 {
-                    reaction_time = 20;
+                    reaction_time = 50;
                     speed = 0f;
                 }
             }
@@ -298,7 +298,6 @@ internal class Car
             if (StartToBrake())
             {
                 Retard();
-                reaction_time = 20;
             }
             else
             {
@@ -324,6 +323,7 @@ internal class Car
     private void Retard()
     {
         speed = Mathf.Max(speed - retardation, 0.0f);
+        reaction_time = 50;
     }
 
     private void Accelerate()
@@ -355,11 +355,11 @@ internal class Car
             {
                 distance_destination = Mathf.Abs(this.position.x - destination.coordinates.x);
             }
-            return brake_distance > distance_destination/2;
+            return (brake_distance + GraphicalRoadnet.roadWidth/2) > distance_destination;
         }
         else
         {
-            return brake_distance > distance_next || distance_next < GraphicalRoadnet.roadWidth;
+            return (brake_distance + GraphicalRoadnet.roadWidth/2) > distance_next || distance_next < GraphicalRoadnet.roadWidth;
         }
 
     }
