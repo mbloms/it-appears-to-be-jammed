@@ -478,25 +478,36 @@ internal class Car
         float angle_deg = -90 / (arc / (speed * speed_scaler));
         angle_rad += angle_deg * (Mathf.PI / 180);
 
+        bool q1 = false, q2 = false, q3 = false, q4 = false;
+
         if (from == "west" && to == "north")
         {
             turn_position.x = position.x - (2 * radius - 3 * right_lane_offset) + (2 * radius - 3 * right_lane_offset) * (1-Mathf.Cos(angle_rad - Mathf.PI / 2));
             turn_position.z = position.z + (radius + right_lane_offset) + (2 * radius - 3 * right_lane_offset) * Mathf.Sin(angle_rad - Mathf.PI / 2);
+            q3 = true;
         }
         else if (from == "east" && to == "south")
         {
             turn_position.x = position.x - (2 * radius - 3 * right_lane_offset) * (Mathf.Cos(angle_rad + Mathf.PI / 2));
             turn_position.z = position.z - (2 * radius - 3 * right_lane_offset) + (2 * radius - 3 * right_lane_offset) * Mathf.Sin(angle_rad + Mathf.PI / 2);
+            q1 = true;
         }
         else if (from == "south" && to == "west")
         {
             turn_position.x = position.x - (radius + right_lane_offset) - (2 * radius - 3 * right_lane_offset) * Mathf.Cos(angle_rad + Mathf.PI);
             turn_position.z = position.z + (2 * radius - 3 * right_lane_offset) * Mathf.Sin(angle_rad + Mathf.PI);
-         }
+            q4 = true;
+        }
         else if (from == "north" && to == "east")
         {
             turn_position.x = position.x + (radius + right_lane_offset) + (2 * radius - 3 * right_lane_offset) * (Mathf.Cos(angle_rad - Mathf.PI));
             turn_position.z = position.z - (2 * radius - 3 * right_lane_offset) * (Mathf.Sin(angle_rad - Mathf.PI));
+            q2 = true;
+        }
+
+        if (Mathf.Abs(angle_rad) > 0)
+        {
+            poller.FreePartial(q1,q2,q3,q4);
         }
         
         // Apply animation
@@ -510,10 +521,22 @@ internal class Car
     {
         float step = (GraphicalRoadnet.roadWidth * 2) * (speed * speed_scaler);
 
-        if (direction.x == 1) turn_position.x += step;    // heading east
+        if (direction.x ==  1) turn_position.x += step;    // heading east
         if (direction.x == -1) turn_position.x -= step;   // heading west
-        if (direction.y == 1) turn_position.z += step;    // heading north
+        if (direction.y ==  1) turn_position.z += step;    // heading north
         if (direction.y == -1) turn_position.z -= step;   // heading south
+
+        if (0 < Vector3.Distance(position, turn_position))
+        {
+            // heading east
+            if (direction.x ==  1) poller.FreePartial(false, false, true, false);
+            // heading west
+            if (direction.x == -1) poller.FreePartial(true, false, false, false);
+            // heading north
+            if (direction.y ==  1) poller.FreePartial(false, false, false, true);
+            // heading south
+            if (direction.y == -1) poller.FreePartial(false, true, false, false);
+        }
 
         turn_position.y = position.y;
         model.transform.position = turn_position;

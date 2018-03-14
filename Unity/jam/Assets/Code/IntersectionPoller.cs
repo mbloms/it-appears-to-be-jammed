@@ -8,10 +8,10 @@ internal class IntersectionPoller
     private readonly Intersection target;
 
     //Quadrants to be acquired.
-    private readonly bool q1;
-    private readonly bool q2;
-    private readonly bool q3;
-    private readonly bool q4;
+    private bool q1;
+    private bool q2;
+    private bool q3;
+    private bool q4;
 
     private bool locked;
 
@@ -109,6 +109,22 @@ internal class IntersectionPoller
         {
             locked = false;
             target.Free(q1,q2,q3,q4);
+        }
+    }
+
+    public void FreePartial(bool f1, bool f2, bool f3, bool f4)
+    {
+        if (!locked) return;
+        
+        target.Free(q1 && f1, q2 && f2, q3 && f3, q4 && f4);
+        
+        if (f1) {q1 = false;}
+        if (f2) {q2 = false;}
+        if (f3) {q3 = false;}
+        if (f4) {q4 = false;}
+        
+        if (!(q1||q2||q3||q4)){
+            locked = false;
         }
     }
 }
