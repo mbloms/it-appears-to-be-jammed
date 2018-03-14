@@ -251,6 +251,8 @@ internal class Car
                 if (poller.Acquire())
                 {
                     turning = true;
+                    Accelerate();
+                    AnimateTurn();
                 }
                 else
                 {
@@ -310,7 +312,15 @@ internal class Car
             // Log("driving old:" + previous_queue.Count + " cur:" + current_queue.Count);
             if (StartToBrake())
             {
-                Retard();
+                if (NextCar() == null || DistanceNextCar() > DistanceNextThing())
+                {
+                    Retard(retardation);
+                    reaction_debt = 0;
+                }
+                else
+                {
+                    Retard();
+                }
             }
             else
             {
