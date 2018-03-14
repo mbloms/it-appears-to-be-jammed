@@ -28,6 +28,8 @@ internal class Traffic : MonoBehaviour
         HeliCam heli = GameObject.Find("heli").AddComponent(typeof(HeliCam)) as HeliCam;
         heli.go = cars[0].model;
         heli.ready = true;
+
+        cars[0].debugging = true;
     }
 
     public void Update()

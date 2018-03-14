@@ -43,7 +43,7 @@ internal class Car
     public GameObject model;
     private LogicalRoadnet network;
 
-    private bool debugging = false;
+    public bool debugging = false;
 
     public Car(LogicalRoadnet network, bool debugging)
     {
