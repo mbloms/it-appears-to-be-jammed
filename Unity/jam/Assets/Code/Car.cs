@@ -321,13 +321,18 @@ internal class Car
         }
     }
 
-    private void Retard()
+    private void Retard(float min = 0.0f)
     {
-        speed = Mathf.Max(speed - retardation, 0.0f);
+        speed = Mathf.Max(speed - retardation, min);
         reaction_debt = reaction_time;
     }
 
     private void Accelerate()
+    {
+        Accelerate(max_speed);
+    }
+
+    private void Accelerate(float max)
     {
         if (reaction_debt > 0)
         {
@@ -335,7 +340,7 @@ internal class Car
         }
         else
         {
-            speed = Mathf.Min(speed + acceleration, max_speed);
+            speed = Mathf.Min(speed + acceleration, max);
         }
     }
 
