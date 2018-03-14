@@ -595,10 +595,15 @@ internal class Car
             return false;
         }
 
-        var distance = Vector3.Distance(next_car.getPosition(), source.coordinates);
-        //Log("distance in Queue: " + distance);
+        if (next_car.reaction_debt == 0 && !next_car.StartToBrake())
+        {
+            Log("Shortcut!");
+            return false;
+        }
 
-        return distance < (1.5 * GraphicalRoadnet.roadWidth);
+        var distance = Vector3.Distance(next_car.getPosition(), source.coordinates);
+
+        return distance < (2 * GraphicalRoadnet.roadWidth);
     }
 
     private bool ApproachingIntersection()
