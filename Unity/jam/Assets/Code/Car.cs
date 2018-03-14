@@ -510,10 +510,22 @@ internal class Car
     {
         float step = (GraphicalRoadnet.roadWidth * 2) * (speed * speed_scaler);
 
-        if (direction.x == 1) turn_position.x += step;    // heading east
+        if (direction.x ==  1) turn_position.x += step;    // heading east
         if (direction.x == -1) turn_position.x -= step;   // heading west
-        if (direction.y == 1) turn_position.z += step;    // heading north
+        if (direction.y ==  1) turn_position.z += step;    // heading north
         if (direction.y == -1) turn_position.z -= step;   // heading south
+
+        if (0 < Vector3.Distance(position, turn_position))
+        {
+            // heading east
+            if (direction.x ==  1) poller.FreePartial(false, false, true, false);
+            // heading west
+            if (direction.x == -1) poller.FreePartial(true, false, false, false);
+            // heading north
+            if (direction.y ==  1) poller.FreePartial(false, false, false, true);
+            // heading south
+            if (direction.y == -1) poller.FreePartial(false, true, false, false);
+        }
 
         turn_position.y = position.y;
         model.transform.position = turn_position;
