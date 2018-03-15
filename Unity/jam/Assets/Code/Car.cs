@@ -14,8 +14,9 @@ internal class Car
     private static float retardation = 0.5f;//40.0f * speed_scaler;
     
     private float speed = 0.0f;
-    private float friction = 1.0f;
-    private float radius;
+    //Asså fiktionskonstanten gånger gravitation ish.
+    private float friction = 2000f;
+    private float radius = -1;
 
     private float intersection_speed = max_speed * 0.5f;
     private float approach_distance = GraphicalRoadnet.roadWidth * 2;
@@ -223,26 +224,29 @@ internal class Car
                     // 3. Stop waiting
                     waiting = false;
                     turning = false;
+                    radius = -1;
                     poller.Free();
-
                 }
                 else
                 {
+                    float turn_speed = max_speed;
+                    if (radius > 0)
+                    {
+                        turn_speed = Mathf.Sqrt(radius * friction);
+                    }
+                    
                     if (StartToBrake() && NextCar() != null)
                     {
-                        var next_speed = NextCar().speed;
-                        if (speed > next_speed)
-                        {
-                            Retard(next_speed);
-                        }
-                        else
-                        {
-                            Accelerate(next_speed);
-                        }
+                        turn_speed = Mathf.Min(turn_speed, NextCar().speed);
+                    }
+
+                    if (turn_speed < speed)
+                    {
+                        Retard(turn_speed);
                     }
                     else
                     {
-                        Accelerate();
+                        Accelerate(turn_speed);
                     }
                     /** animate movement */
                     AnimateTurn();
