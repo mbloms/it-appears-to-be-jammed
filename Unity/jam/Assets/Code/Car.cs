@@ -225,7 +225,7 @@ internal class Car
                 }
                 else
                 {
-                    if (StartToBrake())
+                    if (StartToBrake() && NextCar() != null)
                     {
                         var next_speed = NextCar().speed;
                         if (speed > next_speed)
@@ -234,7 +234,7 @@ internal class Car
                         }
                         else
                         {
-                            Accelerate(NextCar().speed);
+                            Accelerate(next_speed);
                         }
                     }
                     else
@@ -251,6 +251,7 @@ internal class Car
                 if (poller.Acquire())
                 {
                     turning = true;
+                    current_queue.AddLast(this);
                     Accelerate();
                     AnimateTurn();
                 }
@@ -300,7 +301,6 @@ internal class Car
             {
                 current_queue = destination.SQ;
             }
-            current_queue.AddLast(this);
             reaction_debt = 0;
             
             turn_position = position;
@@ -314,8 +314,8 @@ internal class Car
             {
                 if (NextCar() == null || DistanceNextCar() > DistanceNextThing())
                 {
-                    Retard(retardation);
                     reaction_debt = 0;
+                    Retard(retardation * 10);
                 }
                 else
                 {
@@ -346,8 +346,16 @@ internal class Car
     private void Retard(float min = 0.0f)
     {
         if (min < 0) {min = 0;}
-        
-        speed = Mathf.Max(speed - retardation, min);
+
+        if (speed < min)
+        {
+            reaction_debt = 0;
+            Accelerate(min);
+        }
+        else
+        {
+            speed = Mathf.Max(speed - retardation, min);
+        }
         reaction_debt = reaction_time;
     }
 
@@ -359,6 +367,14 @@ internal class Car
     private void Accelerate(float max)
     {
         if (max > max_speed) {max = max_speed;}
+
+        if (speed > max)
+        {
+            var tmp = reaction_debt;
+            Retard(max);
+            reaction_debt = tmp;
+            return;
+        }
         
         if (reaction_debt > 0)
         {
@@ -607,17 +623,10 @@ internal class Car
     }
 
     private bool DestinationQueueFull()
-    {
-        var next_car = NextCar();
-        if (next_car == null)
-        {
-            return false;
-        }
+    {   
+        var capacity = Vector3.Distance(source.coordinates, destination.coordinates)/GraphicalRoadnet.roadWidth;
 
-        var distance = Vector3.Distance(next_car.getPosition(), source.coordinates);
-        //Log("distance in Queue: " + distance);
-
-        return distance < (1.5 * GraphicalRoadnet.roadWidth);
+        return capacity - 1 <= current_queue.Count;
     }
 
     private bool ApproachingIntersection()
