@@ -4,6 +4,7 @@ This GitHub-page is used as a blog for the final project in [Models and Simulati
 
 # Blog posts
 
+- 2018-03-14 [Lifting intersection constraints](2018-03-14.md)
 - 2018-03-13 [Reworking velocity](2018-03-13.md)
 - 2018-03-12 [Final presentations](2018-03-12.md)
 - 2018-03-10 [Making the cars turn](2018-03-10.md)
