@@ -314,8 +314,8 @@ internal class Car
             {
                 if (NextCar() == null || DistanceNextCar() > DistanceNextThing())
                 {
-                    reaction_debt = 0;
                     Retard(retardation * 10);
+                    reaction_debt = 0;
                 }
                 else
                 {
