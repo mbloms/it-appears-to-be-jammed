@@ -246,6 +246,11 @@ internal class Car
 
                     if (turn_speed < speed)
                     {
+                        if (NextCar() == null || turn_speed < NextCar().speed)
+                        {
+                            // Det händer aldrig :(
+                            Debug.Log("DET HÄNDER!!");
+                        }
                         Retard(turn_speed);
                     }
                     else
