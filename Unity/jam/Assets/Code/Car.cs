@@ -11,7 +11,8 @@ internal class Car
     private static float speed_scaler = 0.0005f;
     private static float max_speed = 50.0f;
     private static float acceleration = 0.2f;//6.0f * speed_scaler;
-    private static float retardation = 1.0f;//40.0f * speed_scaler;
+    private static float retardation = 0.5f;//40.0f * speed_scaler;
+    
     private float speed = 0.0f;
 
     private float intersection_speed = max_speed * 0.5f;
@@ -423,9 +424,7 @@ internal class Car
     private bool StartToBrake()
     {
         float distance_next = DistanceNextThing();
-        // Retardation scaled for margin.
-        float break_time = speed / (retardation * 0.9f);
-        float brake_distance = speed_scaler * speed * break_time / 2;
+        float brake_distance = speed_scaler * speed * speed / (2 *  retardation);
        
         return (brake_distance + GraphicalRoadnet.roadWidth) >= distance_next;
 
