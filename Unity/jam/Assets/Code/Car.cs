@@ -617,7 +617,7 @@ internal class Car
 
     public Vector3 getPosition()
     {
-        if (turning)
+        if (waiting)
         {
             return turn_position;
         }
