@@ -8,10 +8,13 @@ internal class Car
     private static float scale_factor = GraphicalRoadnet.roadWidth * 0.3f;
     private static float right_lane_offset = GraphicalRoadnet.roadWidth * 0.25f;
 
-    private static float speed_scaler = 0.0005f;
-    private static float max_speed = 50.0f;
-    private static float acceleration = 0.2f;//6.0f * speed_scaler;
-    private static float retardation = 1.0f;//40.0f * speed_scaler;
+    private static float car_length = GraphicalRoadnet.roadWidth * 0.8f;
+    private static float meter = car_length / 4.8f;
+
+    private static float speed_scaler = 0.0f;
+    private static float max_speed = 50.0f;     // km/h
+    private static float acceleration = 0.2f;   // km/h*framerate
+    private static float retardation = 0.4f;    // km/h*framerate
     private float speed = 0.0f;
 
     private float intersection_speed = max_speed * 0.5f;
@@ -32,7 +35,6 @@ internal class Car
     private bool waiting = false;
     private float angle_rad;
     private Vector3 turn_position;
-    private int right_turn_delay = 50;
     private int reaction_debt;
     private readonly int reaction_time = 50;
 
@@ -193,6 +195,9 @@ internal class Car
 
     public void Drive()
     {
+        // update speed scaler for this iteration
+        speed_scaler = (meter / Main.FPS) / 3.6f;
+
         /** if waiting for OK to drive */
         if (waiting)
         {
