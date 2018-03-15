@@ -6,7 +6,7 @@ using UnityEngine;
 public class Main : MonoBehaviour {
 
     private static float deltaTime = 0.0f;
-    public static float FPS = 0.0f;
+    public static float FPS = 30.0f;
     
     void Start () {
         List<int[]> intersections = ReadCSV(@"Assets/Data/intersections.csv");
@@ -41,7 +41,8 @@ public class Main : MonoBehaviour {
 	// Update is called once per frame
 	void Update () {
         /** FPS calculation inspired by: http://wiki.unity3d.com/index.php?title=FramesPerSecond */
-        deltaTime += (Time.unscaledDeltaTime - deltaTime) * 0.1f;
-        FPS = 1.0f / deltaTime;
-    }
+        //deltaTime += (Time.deltaTime - deltaTime) * 0.1f;
+        //FPS = 1.0f / deltaTime;
+	    //Debug.Log("FPS: " + FPS);
+	}
 }
