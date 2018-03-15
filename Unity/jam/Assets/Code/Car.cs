@@ -16,6 +16,9 @@ internal class Car
     private static float acceleration = 0.2f;   // km/h*framerate
     private static float retardation = 0.4f;    // km/h*framerate
     private float speed = 0.0f;
+    //Asså fiktionskonstanten gånger gravitation ish.
+    private float friction = 2000f;
+    private float radius = -1;
 
     private float intersection_speed = max_speed * 0.5f;
     private float approach_distance = GraphicalRoadnet.roadWidth * 2;
@@ -225,26 +228,29 @@ internal class Car
                     // 3. Stop waiting
                     waiting = false;
                     turning = false;
+                    radius = -1;
                     poller.Free();
-
                 }
                 else
                 {
+                    float turn_speed = max_speed;
+                    if (radius > 0)
+                    {
+                        turn_speed = Mathf.Sqrt(radius * friction);
+                    }
+                    
                     if (StartToBrake() && NextCar() != null)
                     {
-                        var next_speed = NextCar().speed;
-                        if (speed > next_speed)
-                        {
-                            Retard(next_speed);
-                        }
-                        else
-                        {
-                            Accelerate(next_speed);
-                        }
+                        turn_speed = Mathf.Min(turn_speed, NextCar().speed);
+                    }
+
+                    if (turn_speed < speed)
+                    {
+                        Retard(turn_speed);
                     }
                     else
                     {
-                        Accelerate();
+                        Accelerate(turn_speed);
                     }
                     /** animate movement */
                     AnimateTurn();
@@ -428,9 +434,7 @@ internal class Car
     private bool StartToBrake()
     {
         float distance_next = DistanceNextThing();
-        // Retardation scaled for margin.
-        float break_time = speed / (retardation * 0.9f);
-        float brake_distance = speed_scaler * speed * break_time / 2;
+        float brake_distance = speed_scaler * speed * speed / (2 *  retardation);
        
         return (brake_distance + GraphicalRoadnet.roadWidth) >= distance_next;
 
@@ -470,31 +474,31 @@ internal class Car
     // Turn the car right in an intersection
     private void AnimateRight()
     {
-        float radius = GraphicalRoadnet.roadWidth;
-        float arc = (radius - right_lane_offset) * 2 * Mathf.PI / 4;
+        radius = (GraphicalRoadnet.roadWidth - right_lane_offset);
+        float arc = radius * 2 * Mathf.PI / 4;
 
         float angle_deg = 90 / (arc / (speed * speed_scaler));
         angle_rad += angle_deg * (Mathf.PI / 180);
 
         if (from == "north" && to == "west")
         {
-            turn_position.x = position.x - (radius - right_lane_offset) * (1 - Mathf.Cos(angle_rad));
-            turn_position.z = position.z - (radius - right_lane_offset) * Mathf.Sin(angle_rad);
+            turn_position.x = position.x - radius * (1 - Mathf.Cos(angle_rad));
+            turn_position.z = position.z - radius * Mathf.Sin(angle_rad);
         }
         else if (from == "south" && to == "east")
         {
-            turn_position.x = position.x + (radius - right_lane_offset) * (1 - Mathf.Cos(angle_rad));
-            turn_position.z = position.z + (radius - right_lane_offset) * Mathf.Sin(angle_rad);
+            turn_position.x = position.x + radius * (1 - Mathf.Cos(angle_rad));
+            turn_position.z = position.z + radius * Mathf.Sin(angle_rad);
         }
         else if (from == "west" && to == "south")
         {
-            turn_position.x = position.x + (radius - right_lane_offset) * (Mathf.Cos(angle_rad - Mathf.PI / 2));
-            turn_position.z = position.z - (radius - right_lane_offset) + ((radius - right_lane_offset) * Mathf.Sin(angle_rad + Mathf.PI / 2));
+            turn_position.x = position.x + radius * (Mathf.Cos(angle_rad - Mathf.PI / 2));
+            turn_position.z = position.z - radius + (radius * Mathf.Sin(angle_rad + Mathf.PI / 2));
         }
         else if (from == "east" && to == "north")
         {
-            turn_position.x = position.x - (radius - right_lane_offset) * (Mathf.Cos(angle_rad - Mathf.PI / 2));
-            turn_position.z = position.z + (radius - right_lane_offset) + ((radius - right_lane_offset) * Mathf.Sin(angle_rad - Mathf.PI / 2));
+            turn_position.x = position.x - radius * (Mathf.Cos(angle_rad - Mathf.PI / 2));
+            turn_position.z = position.z + radius + (radius * Mathf.Sin(angle_rad - Mathf.PI / 2));
         }
 
         // Apply animation
@@ -506,8 +510,8 @@ internal class Car
     // Turn the car left in an intersection
     private void AnimateLeft()
     {
-        float radius = GraphicalRoadnet.roadWidth;
-        float arc = (radius + right_lane_offset) * 2 * Mathf.PI / 4;
+        radius = (GraphicalRoadnet.roadWidth + right_lane_offset);
+        float arc = (GraphicalRoadnet.roadWidth + right_lane_offset) * 2 * Mathf.PI / 4;
 
         float angle_deg = -90 / (arc / (speed * speed_scaler));
         angle_rad += angle_deg * (Mathf.PI / 180);
@@ -516,26 +520,26 @@ internal class Car
 
         if (from == "west" && to == "north")
         {
-            turn_position.x = position.x - (2 * radius - 3 * right_lane_offset) + (2 * radius - 3 * right_lane_offset) * (1-Mathf.Cos(angle_rad - Mathf.PI / 2));
-            turn_position.z = position.z + (radius + right_lane_offset) + (2 * radius - 3 * right_lane_offset) * Mathf.Sin(angle_rad - Mathf.PI / 2);
+            turn_position.x = position.x - radius + radius * (1-Mathf.Cos(angle_rad - Mathf.PI / 2));
+            turn_position.z = position.z + (GraphicalRoadnet.roadWidth + right_lane_offset) + radius * Mathf.Sin(angle_rad - Mathf.PI / 2);
             q3 = true;
         }
         else if (from == "east" && to == "south")
         {
-            turn_position.x = position.x - (2 * radius - 3 * right_lane_offset) * (Mathf.Cos(angle_rad + Mathf.PI / 2));
-            turn_position.z = position.z - (2 * radius - 3 * right_lane_offset) + (2 * radius - 3 * right_lane_offset) * Mathf.Sin(angle_rad + Mathf.PI / 2);
+            turn_position.x = position.x - radius * (Mathf.Cos(angle_rad + Mathf.PI / 2));
+            turn_position.z = position.z - radius + radius * Mathf.Sin(angle_rad + Mathf.PI / 2);
             q1 = true;
         }
         else if (from == "south" && to == "west")
         {
-            turn_position.x = position.x - (radius + right_lane_offset) - (2 * radius - 3 * right_lane_offset) * Mathf.Cos(angle_rad + Mathf.PI);
-            turn_position.z = position.z + (2 * radius - 3 * right_lane_offset) * Mathf.Sin(angle_rad + Mathf.PI);
+            turn_position.x = position.x - (GraphicalRoadnet.roadWidth + right_lane_offset) - radius * Mathf.Cos(angle_rad + Mathf.PI);
+            turn_position.z = position.z + radius * Mathf.Sin(angle_rad + Mathf.PI);
             q4 = true;
         }
         else if (from == "north" && to == "east")
         {
-            turn_position.x = position.x + (radius + right_lane_offset) + (2 * radius - 3 * right_lane_offset) * (Mathf.Cos(angle_rad - Mathf.PI));
-            turn_position.z = position.z - (2 * radius - 3 * right_lane_offset) * (Mathf.Sin(angle_rad - Mathf.PI));
+            turn_position.x = position.x + (GraphicalRoadnet.roadWidth + right_lane_offset) + radius * (Mathf.Cos(angle_rad - Mathf.PI));
+            turn_position.z = position.z - radius * (Mathf.Sin(angle_rad - Mathf.PI));
             q2 = true;
         }
 
