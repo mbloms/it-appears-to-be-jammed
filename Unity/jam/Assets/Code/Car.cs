@@ -35,7 +35,6 @@ internal class Car
     private bool waiting = false;
     private float angle_rad;
     private Vector3 turn_position;
-    private int right_turn_delay = 50;
     private int reaction_debt;
     private readonly int reaction_time = 50;
 
