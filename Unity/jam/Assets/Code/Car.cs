@@ -13,8 +13,8 @@ internal class Car
 
     private static float speed_scaler = 0.0f;
     private static float max_speed = 50.0f;     // km/h
-    private static float acceleration = 0.2f;   // km/s
-    private static float retardation = 2.0f;    // km/s
+    private static float acceleration = 0.2f;   // km/h*framerate
+    private static float retardation = 0.4f;    // km/h*framerate
     private float speed = 0.0f;
 
     private float intersection_speed = max_speed * 0.5f;
