@@ -44,5 +44,7 @@ public class Main : MonoBehaviour {
         //deltaTime += (Time.deltaTime - deltaTime) * 0.1f;
         //FPS = 1.0f / deltaTime;
 	    //Debug.Log("FPS: " + FPS);
+	    // update speed scaler for this iteration
+	    Car.speed_scaler = (Car.meter / Main.FPS) / 3.6f;
 	}
 }

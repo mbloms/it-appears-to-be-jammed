@@ -9,9 +9,9 @@ internal class Car
     private static float right_lane_offset = GraphicalRoadnet.roadWidth * 0.25f;
 
     private static float car_length = GraphicalRoadnet.roadWidth * 0.8f;
-    private static float meter = car_length / 4.8f;
+    public static readonly float meter = car_length / 4.8f;
 
-    private static float speed_scaler = 0.0f;
+    protected internal static float speed_scaler = 0.0f;
     private static float max_speed = 50.0f;     // km/h
     private static float acceleration = 0.2f;   // km/h*framerate
     private static float retardation = 0.4f;    // km/h*framerate
@@ -198,8 +198,6 @@ internal class Car
 
     public void Drive()
     {
-        // update speed scaler for this iteration
-        speed_scaler = (meter / Main.FPS) / 3.6f;
 
         /** if waiting for OK to drive */
         if (waiting)
