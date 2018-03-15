@@ -17,7 +17,7 @@ internal class Car
     private static float retardation = 0.4f;    // km/h*framerate
     private float speed = 0.0f;
     //Asså fiktionskonstanten gånger gravitation ish.
-    private float friction = 2000f;
+    private static float friction = 0.81f / meter * 9.81f;
     private float radius = -1;
 
     private float intersection_speed = max_speed * 0.5f;
@@ -236,7 +236,7 @@ internal class Car
                     float turn_speed = max_speed;
                     if (radius > 0)
                     {
-                        turn_speed = Mathf.Sqrt(radius * friction);
+                        turn_speed = Mathf.Sqrt(radius/meter * friction)*3.6f;
                     }
                     
                     if (StartToBrake() && NextCar() != null)
