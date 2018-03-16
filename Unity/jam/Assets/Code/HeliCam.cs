@@ -9,7 +9,7 @@ internal class HeliCam : MonoBehaviour
     {
         if (ready)
         {
-            transform.position = go.transform.position + new Vector3(0.0f, 2.0f, 0.0f); ;
+            transform.position = go.transform.position + new Vector3(0.0f, 2.5f, 0.0f); ;
         }
     }
 }

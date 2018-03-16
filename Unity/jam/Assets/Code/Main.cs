@@ -6,7 +6,7 @@ using UnityEngine;
 public class Main : MonoBehaviour {
 
     private static float deltaTime = 0.0f;
-    public static float FPS = 30.0f;
+    public static float FPS = 15.0f;
     
     void Start () {
         List<int[]> intersections = ReadCSV(@"Assets/Data/intersections.csv");
